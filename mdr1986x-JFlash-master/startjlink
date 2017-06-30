@@ -1,0 +1,6 @@
+#!/bin/bash
+
+OPT="-device Cortex-M1 -if JTAG -speed 1000 -endian little"
+
+/opt/SEGGER/JLink/JLinkGDBServer  $OPT
+

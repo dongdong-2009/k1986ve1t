@@ -1,0 +1,7 @@
+#!/bin/bash
+
+LDRDIR="/home/smolvik/k1986ve1t/soft/mdr1986x-JFlash-master"
+
+#arm-none-eabi-gdb-py --batch -x "./mdr1986x-JFlash-master/JFlash.py" -ex "py program_from_shell('./blink2/blink.elf')"
+arm-none-eabi-gdb-py --batch -x "$LDRDIR/JFlash.py" -ex "py program_from_shell('$1')"
+

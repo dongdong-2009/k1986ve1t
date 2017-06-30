@@ -1,0 +1,105 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x00020000         xr
+SRAM1            0x20000000         0x00008000         xrw
+SRAM2            0x20100000         0x00004000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x20100000      0x270
+                0x20100000                . = ALIGN (0x4)
+ *(.text)
+ .text          0x20100000        0x0 FlashDev.o
+ .text          0x20100000      0x270 FlashPrg.o
+                0x2010000c                sleep
+                0x2010002c                Init
+                0x2010007c                UnInit
+                0x201000a0                EraseSector
+                0x201001a0                ProgramPage
+                0x20100270                . = ALIGN (0x4)
+
+DevDscr         0x20100270     0x10a0
+                [!provide]                PROVIDE (__start_DevDscr, .)
+ DevDscr        0x20100270     0x10a0 FlashDev.o
+                0x20100270                FlashDevice
+                [!provide]                PROVIDE (__stop_DevDscr, .)
+
+.glue_7         0x20101310        0x0
+ .glue_7        0x20101310        0x0 linker stubs
+
+.glue_7t        0x20101310        0x0
+ .glue_7t       0x20101310        0x0 linker stubs
+
+.vfp11_veneer   0x20101310        0x0
+ .vfp11_veneer  0x20101310        0x0 linker stubs
+
+.v4_bx          0x20101310        0x0
+ .v4_bx         0x20101310        0x0 linker stubs
+
+.iplt           0x20101310        0x0
+ .iplt          0x20101310        0x0 FlashDev.o
+
+.rel.dyn        0x20101310        0x0
+ .rel.iplt      0x20101310        0x0 FlashDev.o
+
+.data           0x20000000        0x0
+                0x20000000                . = ALIGN (0x4)
+ *(.data)
+ .data          0x20000000        0x0 FlashDev.o
+ .data          0x20000000        0x0 FlashPrg.o
+                0x20000000                . = ALIGN (0x4)
+
+.igot.plt       0x20000000        0x0
+ .igot.plt      0x20000000        0x0 FlashDev.o
+
+.bss            0x20000000        0x4
+                0x20000000                . = ALIGN (0x4)
+ *(.bss)
+ .bss           0x20000000        0x0 FlashDev.o
+ .bss           0x20000000        0x4 FlashPrg.o
+                0x20000004                . = ALIGN (0x4)
+LOAD FlashDev.o
+LOAD FlashPrg.o
+OUTPUT(k1986ve1t.elf elf32-littlearm)
+
+.debug_info     0x00000000      0x2e1
+ .debug_info    0x00000000      0x128 FlashDev.o
+ .debug_info    0x00000128      0x1b9 FlashPrg.o
+
+.debug_abbrev   0x00000000      0x162
+ .debug_abbrev  0x00000000       0x7b FlashDev.o
+ .debug_abbrev  0x0000007b       0xe7 FlashPrg.o
+
+.debug_aranges  0x00000000       0x38
+ .debug_aranges
+                0x00000000       0x18 FlashDev.o
+ .debug_aranges
+                0x00000018       0x20 FlashPrg.o
+
+.debug_line     0x00000000      0x110
+ .debug_line    0x00000000       0x38 FlashDev.o
+ .debug_line    0x00000038       0xd8 FlashPrg.o
+
+.debug_str      0x00000000      0x1e8
+ .debug_str     0x00000000      0x17b FlashDev.o
+ .debug_str     0x0000017b       0x6d FlashPrg.o
+                                0x14f (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e FlashDev.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f FlashPrg.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 FlashDev.o
+ .ARM.attributes
+                0x00000031       0x31 FlashPrg.o
+
+.debug_frame    0x00000000       0xcc
+ .debug_frame   0x00000000       0xcc FlashPrg.o

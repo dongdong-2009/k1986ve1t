@@ -1,0 +1,195 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000      0x898
+                0x00000000                . = ALIGN (0x4)
+ *(.interrupt_vector)
+ .interrupt_vector
+                0x00000000       0xc0 startup.o
+                0x00000000                table_interrupt_vector
+ *(.text)
+ .text          0x000000c0      0x4bc main.o
+                0x000001a4                sleep
+                0x000001d0                main
+                0x00000278                PortConfig
+                0x000003b0                ClkConfig
+                0x00000424                TimerConfig
+                0x00000518                SystemInit
+                0x0000053c                SysTick_Handler
+                0x00000554                TIMER4_Handler
+ .text          0x0000057c       0x68 startup.o
+                0x0000057c                Reset_Handler
+                0x0000057c                handler_reset
+                0x000005dc                DMA_Handler
+                0x000005dc                UART2_Handler
+                0x000005dc                HardFault_Handler
+                0x000005dc                ARINC429T2_Handler
+                0x000005dc                EXT_INT1_Handler
+                0x000005dc                PendSV_Handler
+                0x000005dc                NMI_Handler
+                0x000005dc                ADC_Handler
+                0x000005dc                TIMER2_Handler
+                0x000005dc                WWDG_Handler
+                0x000005dc                POWER_Handler
+                0x000005dc                BKP_Handler
+                0x000005dc                TIMER1_Handler
+                0x000005dc                MIL_STD_1553B1_Handler
+                0x000005dc                CAN2_Handler
+                0x000005dc                TIMER3_Handler
+                0x000005dc                default_handler
+                0x000005dc                EXT_INT2_Handler
+                0x000005dc                USB_Handler
+                0x000005dc                ETHERNET_Handler
+                0x000005dc                ARINC429T4_Handler
+                0x000005dc                EXT_INT4_Handler
+                0x000005dc                MIL_STD_1553B2_Handler
+                0x000005dc                CAN1_Handler
+                0x000005dc                EXT_INT3_Handler
+                0x000005dc                SVC_Handler
+                0x000005dc                BUSY_Handler
+                0x000005dc                ARINC429T3_Handler
+                0x000005dc                SSP2_Handler
+                0x000005dc                SSP3_Handler
+                0x000005dc                ARINC429T1_Handler
+                0x000005dc                ARINC429R_Handler
+                0x000005dc                SSP1_Handler
+ .text          0x000005e4      0x298 uart.o
+                0x00000654                uart_init
+                0x000006d4                uart_read
+                0x0000074c                uart_send
+                0x000007f4                UART1_Handler
+ *(.text*)
+ *(.rodata)
+ .rodata        0x0000087c       0x1a main.o
+ *(.rodata*)
+                0x00000898                . = ALIGN (0x4)
+ *fill*         0x00000896        0x2 
+                0x00000898                _data_flash = .
+
+.glue_7         0x00000898        0x0
+ .glue_7        0x00000898        0x0 linker stubs
+
+.glue_7t        0x00000898        0x0
+ .glue_7t       0x00000898        0x0 linker stubs
+
+.vfp11_veneer   0x00000898        0x0
+ .vfp11_veneer  0x00000898        0x0 linker stubs
+
+.v4_bx          0x00000898        0x0
+ .v4_bx         0x00000898        0x0 linker stubs
+
+.iplt           0x00000898        0x0
+ .iplt          0x00000898        0x0 main.o
+
+.rel.dyn        0x00000898        0x0
+ .rel.iplt      0x00000898        0x0 main.o
+
+.data           0x20000000        0x4 load address 0x00000898
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+ .data          0x20000004        0x0 startup.o
+ .data          0x20000004        0x0 uart.o
+ *(.data*)
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _data_end = .
+
+.igot.plt       0x20000004        0x0 load address 0x0000089c
+ .igot.plt      0x20000004        0x0 main.o
+
+.bss            0x20000004      0x41c load address 0x0000089c
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _bss_begin = .
+                0x20000004                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x20000004        0xc main.o
+                0x20000004                Current_Led
+                0x20000008                cnt
+                0x2000000c                system_time
+ .bss           0x20000010        0x0 startup.o
+ .bss           0x20000010      0x410 uart.o
+                0x20000010                tx_buf
+                0x20000210                tx_idx
+                0x20000214                tx_wr_idx
+                0x20000218                rx_buf
+                0x20000418                rx_idx
+                0x2000041c                rx_rd_idx
+ *(.bss*)
+ *(COMMON)
+                0x20000420                . = ALIGN (0x4)
+                0x20000420                _bss_end = .
+                0x20000420                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x20000420      0x400 load address 0x00000cb8
+                0x20000820                . = (. + _stack_size)
+ *fill*         0x20000420      0x400 
+LOAD main.o
+LOAD startup.o
+LOAD uart.o
+OUTPUT(blink.elf elf32-littlearm)
+
+.debug_info     0x00000000      0xfef
+ .debug_info    0x00000000      0x951 main.o
+ .debug_info    0x00000951       0xf1 startup.o
+ .debug_info    0x00000a42      0x5ad uart.o
+
+.debug_abbrev   0x00000000      0x47a
+ .debug_abbrev  0x00000000      0x225 main.o
+ .debug_abbrev  0x00000225       0xab startup.o
+ .debug_abbrev  0x000002d0      0x1aa uart.o
+
+.debug_aranges  0x00000000       0x60
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x20 startup.o
+ .debug_aranges
+                0x00000040       0x20 uart.o
+
+.debug_line     0x00000000      0x28c
+ .debug_line    0x00000000      0x150 main.o
+ .debug_line    0x00000150       0x50 startup.o
+ .debug_line    0x000001a0       0xec uart.o
+
+.debug_str      0x00000000      0x79a
+ .debug_str     0x00000000      0x63e main.o
+                                0x66e (size before relaxing)
+ .debug_str     0x0000063e       0xa5 startup.o
+                                0x164 (size before relaxing)
+ .debug_str     0x000006e3       0xb7 uart.o
+                                0x4c4 (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f startup.o
+ .comment       0x0000006e       0x6f uart.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 startup.o
+ .ARM.attributes
+                0x00000062       0x31 uart.o
+
+.debug_frame    0x00000000      0x26c
+ .debug_frame   0x00000000      0x158 main.o
+ .debug_frame   0x00000158       0x4c startup.o
+ .debug_frame   0x000001a4       0xc8 uart.o

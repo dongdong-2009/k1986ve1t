@@ -1,0 +1,172 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000      0x654
+                0x00000000                . = ALIGN (0x4)
+ *(.interrupt_vector)
+ .interrupt_vector
+                0x00000000       0xc0 startup.o
+                0x00000000                table_interrupt_vector
+ *(.text)
+ .text          0x000000c0      0x51c main.o
+                0x000001a4                sleep
+                0x000001d0                main
+                0x00000254                PortConfig
+                0x0000038c                ClkConfig
+                0x00000400                TimerConfig
+                0x000004f4                UartConfig
+                0x0000056c                SystemInit
+                0x00000590                SysTick_Handler
+                0x000005a8                TIMER4_Handler
+                0x000005d0                UART1_Handler
+ .text          0x000005dc       0x68 startup.o
+                0x000005dc                Reset_Handler
+                0x000005dc                handler_reset
+                0x0000063c                DMA_Handler
+                0x0000063c                UART2_Handler
+                0x0000063c                HardFault_Handler
+                0x0000063c                ARINC429T2_Handler
+                0x0000063c                EXT_INT1_Handler
+                0x0000063c                PendSV_Handler
+                0x0000063c                NMI_Handler
+                0x0000063c                ADC_Handler
+                0x0000063c                TIMER2_Handler
+                0x0000063c                WWDG_Handler
+                0x0000063c                POWER_Handler
+                0x0000063c                BKP_Handler
+                0x0000063c                TIMER1_Handler
+                0x0000063c                MIL_STD_1553B1_Handler
+                0x0000063c                CAN2_Handler
+                0x0000063c                TIMER3_Handler
+                0x0000063c                default_handler
+                0x0000063c                EXT_INT2_Handler
+                0x0000063c                USB_Handler
+                0x0000063c                ETHERNET_Handler
+                0x0000063c                ARINC429T4_Handler
+                0x0000063c                EXT_INT4_Handler
+                0x0000063c                MIL_STD_1553B2_Handler
+                0x0000063c                CAN1_Handler
+                0x0000063c                EXT_INT3_Handler
+                0x0000063c                SVC_Handler
+                0x0000063c                BUSY_Handler
+                0x0000063c                ARINC429T3_Handler
+                0x0000063c                SSP2_Handler
+                0x0000063c                SSP3_Handler
+                0x0000063c                ARINC429T1_Handler
+                0x0000063c                ARINC429R_Handler
+                0x0000063c                SSP1_Handler
+ *(.text*)
+ *(.rodata)
+ .rodata        0x00000644        0xe main.o
+ *(.rodata*)
+                0x00000654                . = ALIGN (0x4)
+ *fill*         0x00000652        0x2 
+                0x00000654                _data_flash = .
+
+.glue_7         0x00000654        0x0
+ .glue_7        0x00000654        0x0 linker stubs
+
+.glue_7t        0x00000654        0x0
+ .glue_7t       0x00000654        0x0 linker stubs
+
+.vfp11_veneer   0x00000654        0x0
+ .vfp11_veneer  0x00000654        0x0 linker stubs
+
+.v4_bx          0x00000654        0x0
+ .v4_bx         0x00000654        0x0 linker stubs
+
+.iplt           0x00000654        0x0
+ .iplt          0x00000654        0x0 main.o
+
+.rel.dyn        0x00000654        0x0
+ .rel.iplt      0x00000654        0x0 main.o
+
+.data           0x20000000        0x4 load address 0x00000654
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+ .data          0x20000004        0x0 startup.o
+ *(.data*)
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _data_end = .
+
+.igot.plt       0x20000004        0x0 load address 0x00000658
+ .igot.plt      0x20000004        0x0 main.o
+
+.bss            0x20000004        0xc load address 0x00000658
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _bss_begin = .
+                0x20000004                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x20000004        0xc main.o
+                0x20000004                Current_Led
+                0x20000008                i
+                0x2000000c                system_time
+ .bss           0x20000010        0x0 startup.o
+ *(.bss*)
+ *(COMMON)
+                0x20000010                . = ALIGN (0x4)
+                0x20000010                _bss_end = .
+                0x20000010                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x20000010      0x400 load address 0x00000664
+                0x20000410                . = (. + _stack_size)
+ *fill*         0x20000010      0x400 
+LOAD main.o
+LOAD startup.o
+OUTPUT(blink.elf elf32-littlearm)
+
+.debug_info     0x00000000      0xb27
+ .debug_info    0x00000000      0xa36 main.o
+ .debug_info    0x00000a36       0xf1 startup.o
+
+.debug_abbrev   0x00000000      0x2b4
+ .debug_abbrev  0x00000000      0x209 main.o
+ .debug_abbrev  0x00000209       0xab startup.o
+
+.debug_aranges  0x00000000       0x40
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x20 startup.o
+
+.debug_line     0x00000000      0x1c4
+ .debug_line    0x00000000      0x174 main.o
+ .debug_line    0x00000174       0x50 startup.o
+
+.debug_str      0x00000000      0x73a
+ .debug_str     0x00000000      0x695 main.o
+                                0x6c5 (size before relaxing)
+ .debug_str     0x00000695       0xa5 startup.o
+                                0x164 (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f startup.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 startup.o
+
+.debug_frame    0x00000000      0x1dc
+ .debug_frame   0x00000000      0x190 main.o
+ .debug_frame   0x00000190       0x4c startup.o

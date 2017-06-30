@@ -1,0 +1,258 @@
+Archive member included to satisfy reference by file (symbol)
+
+/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                              xprintf.o (__aeabi_uidiv)
+/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                              /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x20100000     0x1c18
+                0x20100000                . = ALIGN (0x4)
+ *(.startup)
+ .startup       0x20100000       0x54 startup.o
+                0x20100000                startup_proc
+ *(.text)
+ .text          0x20100054      0x4c4 main.o
+                0x2010008c                SystemInit
+                0x201000a8                sleep
+                0x201000d4                strlen
+                0x20100100                main
+                0x201001d4                PortConfig
+                0x2010030c                ClkConfig
+                0x20100380                TimerConfig
+                0x20100474                uart1_putch
+                0x201004a0                UartConfig
+ .text          0x20100518      0x844 xprintf.o
+                0x20100518                xputc
+                0x20100570                xputs
+                0x20100598                xfputs
+                0x201008f4                xprintf
+                0x2010091c                xsprintf
+                0x20100960                xfprintf
+                0x201009a0                put_dump
+                0x20100aa4                xgets
+                0x20100b44                xfgets
+                0x20100b80                xatoi
+ .text          0x20100d5c        0x0 usb_desc.o
+ .text          0x20100d5c        0x0 startup.o
+ .text          0x20100d5c      0xa18 usb.o
+                0x20100d5c                usb_device_init
+                0x20100dd4                usb_reset
+                0x20100e5c                usb_device_update
+                0x20100ff4                usb_read
+                0x20101068                usb_write
+                0x20101104                null_proc
+                0x20101110                enable_RX_proc
+                0x20101134                plan_ZeroLength_OUT_proc
+                0x20101174                plan_ZeroLength_IN_proc
+                0x201011b4                plan_Data_IN_proc
+                0x20101298                string_descriptor_proc
+                0x20101324                get_descriptor_proc
+                0x20101428                input0_for_setaddr_proc
+                0x2010146c                input0_for_setconfig_proc
+                0x201014e8                output0_for_setlinecoding_proc
+                0x201015b4                input0_for_setcontrolline_proc
+                0x201015fc                setup0_proc
+ .text          0x20101774      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                0x20101774                __udivsi3
+                0x20101774                __aeabi_uidiv
+                0x20101880                __aeabi_uidivmod
+ .text          0x20101888        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                0x20101888                __aeabi_ldiv0
+                0x20101888                __aeabi_idiv0
+ *(.text*)
+ *(.rodata)
+ .rodata        0x2010188c       0x22 main.o
+ *fill*         0x201018ae        0x2 
+ .rodata        0x201018b0       0x7b xprintf.o
+ *fill*         0x2010192b        0x1 
+ .rodata        0x2010192c       0xb6 usb_desc.o
+                0x2010192c                Virtual_Com_Port_DeviceDescriptor
+                0x20101940                Virtual_Com_Port_ConfigDescriptor
+                0x20101984                Virtual_Com_Port_StringLangID
+                0x20101988                Virtual_Com_Port_StringVendor
+                0x201019b0                Virtual_Com_Port_StringProduct
+ *fill*         0x201019e2        0x2 
+ .rodata        0x201019e4      0x234 usb.o
+ *(.rodata*)
+                0x20101c18                . = ALIGN (0x4)
+                0x20101c18                _data_flash = .
+
+.glue_7         0x20101c18        0x0
+ .glue_7        0x20101c18        0x0 linker stubs
+
+.glue_7t        0x20101c18        0x0
+ .glue_7t       0x20101c18        0x0 linker stubs
+
+.vfp11_veneer   0x20101c18        0x0
+ .vfp11_veneer  0x20101c18        0x0 linker stubs
+
+.v4_bx          0x20101c18        0x0
+ .v4_bx         0x20101c18        0x0 linker stubs
+
+.iplt           0x20101c18        0x0
+ .iplt          0x20101c18        0x0 main.o
+
+.rel.dyn        0x20101c18        0x0
+ .rel.iplt      0x20101c18        0x0 main.o
+
+.data           0x20000000       0x28 load address 0x20101c18
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+ .data          0x20000004        0x0 xprintf.o
+ .data          0x20000004       0x1a usb_desc.o
+                0x20000004                Virtual_Com_Port_StringSerial
+ .data          0x2000001e        0x0 startup.o
+ *fill*         0x2000001e        0x2 
+ .data          0x20000020        0x8 usb.o
+                0x20000020                input0_proc
+                0x20000024                output0_proc
+ .data          0x20000028        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .data          0x20000028        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+ *(.data*)
+                0x20000028                . = ALIGN (0x4)
+                0x20000028                _data_end = .
+
+.igot.plt       0x20000028        0x0 load address 0x20101c40
+ .igot.plt      0x20000028        0x0 main.o
+
+.bss            0x20000028       0x3c load address 0x20101c40
+                0x20000028                . = ALIGN (0x4)
+                0x20000028                _bss_begin = .
+                0x20000028                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x20000028        0xc main.o
+                0x20000028                Current_Led
+                0x2000002c                i
+                0x20000030                system_time
+ .bss           0x20000034        0xc xprintf.o
+                0x20000034                xfunc_out
+                0x2000003c                xfunc_in
+ .bss           0x20000040        0x0 usb_desc.o
+ .bss           0x20000040        0x0 startup.o
+ .bss           0x20000040       0x24 usb.o
+                0x20000040                devAddr
+                0x20000042                devConfig
+                0x20000044                devControlLineState
+                0x20000048                uart_linecoding_data
+                0x20000050                usbConfigured
+                0x20000054                setup_data
+                0x2000005c                tx_length
+                0x20000060                tx_pbUser
+ .bss           0x20000064        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .bss           0x20000064        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+ *(.bss*)
+ *(COMMON)
+                0x20000064                . = ALIGN (0x4)
+                0x20000064                _bss_end = .
+                0x20000064                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x20000064      0x400 load address 0x20101c7c
+                0x20000464                . = (. + _stack_size)
+ *fill*         0x20000064      0x400 
+LOAD main.o
+LOAD xprintf.o
+LOAD usb_desc.o
+LOAD startup.o
+LOAD usb.o
+START GROUP
+LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a
+END GROUP
+OUTPUT(blink.elf elf32-littlearm)
+
+.debug_info     0x00000000     0x1a9d
+ .debug_info    0x00000000      0x8df main.o
+ .debug_info    0x000008df      0x4c9 xprintf.o
+ .debug_info    0x00000da8      0x14f usb_desc.o
+ .debug_info    0x00000ef7       0x83 startup.o
+ .debug_info    0x00000f7a      0xb23 usb.o
+
+.debug_abbrev   0x00000000      0x6c4
+ .debug_abbrev  0x00000000      0x219 main.o
+ .debug_abbrev  0x00000219      0x194 xprintf.o
+ .debug_abbrev  0x000003ad       0x75 usb_desc.o
+ .debug_abbrev  0x00000422       0x62 startup.o
+ .debug_abbrev  0x00000484      0x240 usb.o
+
+.debug_aranges  0x00000000       0x98
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x20 xprintf.o
+ .debug_aranges
+                0x00000040       0x18 usb_desc.o
+ .debug_aranges
+                0x00000058       0x20 startup.o
+ .debug_aranges
+                0x00000078       0x20 usb.o
+
+.debug_line     0x00000000      0x706
+ .debug_line    0x00000000      0x18b main.o
+ .debug_line    0x0000018b      0x2e3 xprintf.o
+ .debug_line    0x0000046e       0x4c usb_desc.o
+ .debug_line    0x000004ba       0x49 startup.o
+ .debug_line    0x00000503      0x203 usb.o
+
+.debug_str      0x00000000      0xe25
+ .debug_str     0x00000000      0x60c main.o
+                                0x63c (size before relaxing)
+ .debug_str     0x0000060c       0xba xprintf.o
+                                0x1c1 (size before relaxing)
+ .debug_str     0x000006c6       0xc8 usb_desc.o
+                                0x1e3 (size before relaxing)
+ .debug_str     0x0000078e       0x4d startup.o
+                                0x118 (size before relaxing)
+ .debug_str     0x000007db      0x64a usb.o
+                                0x91b (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f xprintf.o
+ .comment       0x0000006e       0x6f usb_desc.o
+ .comment       0x0000006e       0x6f startup.o
+ .comment       0x0000006e       0x6f usb.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 xprintf.o
+ .ARM.attributes
+                0x00000062       0x31 usb_desc.o
+ .ARM.attributes
+                0x00000093       0x31 startup.o
+ .ARM.attributes
+                0x000000c4       0x31 usb.o
+ .ARM.attributes
+                0x000000f5       0x1e /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000113       0x1e /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+
+.debug_frame    0x00000000      0x508
+ .debug_frame   0x00000000      0x13c main.o
+ .debug_frame   0x0000013c      0x170 xprintf.o
+ .debug_frame   0x000002ac       0x30 startup.o
+ .debug_frame   0x000002dc      0x20c usb.o
+ .debug_frame   0x000004e8       0x20 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+
+.debug_ranges   0x00000000       0x10
+ .debug_ranges  0x00000000       0x10 startup.o
