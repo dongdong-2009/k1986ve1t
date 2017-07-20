@@ -1,0 +1,90 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x00020000         xr
+SRAM1            0x20000000         0x00008000         xrw
+SRAM2            0x20100000         0x00004000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x20100000      0x3fc
+ *(.main_sec)
+ .main_sec      0x20100000       0x50 main.o
+                0x20100000                main
+ *(.text)
+ .text          0x20100050      0x3ac main.o
+                0x20100050                sleep
+                0x20100084                PortConfig
+                0x20100130                ClkConfig
+                0x201001a4                TimerConfig
+                0x20100380                adc_init
+                0x201003b0                dac_init
+                0x201003dc                SystemInit
+
+.glue_7         0x201003fc        0x0
+ .glue_7        0x201003fc        0x0 linker stubs
+
+.glue_7t        0x201003fc        0x0
+ .glue_7t       0x201003fc        0x0 linker stubs
+
+.vfp11_veneer   0x201003fc        0x0
+ .vfp11_veneer  0x201003fc        0x0 linker stubs
+
+.v4_bx          0x201003fc        0x0
+ .v4_bx         0x201003fc        0x0 linker stubs
+
+.iplt           0x201003fc        0x0
+ .iplt          0x201003fc        0x0 main.o
+
+.rel.dyn        0x201003fc        0x0
+ .rel.iplt      0x201003fc        0x0 main.o
+
+.data           0x20000000        0x4
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+
+.igot.plt       0x20000004        0x0
+ .igot.plt      0x20000004        0x0 main.o
+
+.bss            0x20000004        0x4
+ *(.bss)
+ .bss           0x20000004        0x4 main.o
+                0x20000004                system_time
+LOAD main.o
+OUTPUT(bue_pwm.elf elf32-littlearm)
+
+.debug_info     0x00000000      0x568
+ .debug_info    0x00000000      0x568 main.o
+
+.debug_abbrev   0x00000000      0x125
+ .debug_abbrev  0x00000000      0x125 main.o
+
+.debug_aranges  0x00000000       0x28
+ .debug_aranges
+                0x00000000       0x28 main.o
+
+.debug_ranges   0x00000000       0x18
+ .debug_ranges  0x00000000       0x18 main.o
+
+.debug_line     0x00000000      0x15e
+ .debug_line    0x00000000      0x15e main.o
+
+.debug_str      0x00000000      0x3e2
+ .debug_str     0x00000000      0x3e2 main.o
+                                0x408 (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+
+.debug_frame    0x00000000       0xf8
+ .debug_frame   0x00000000       0xf8 main.o
