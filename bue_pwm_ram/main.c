@@ -22,6 +22,7 @@ extern void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
 extern void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle);
 extern void update(struct pi_reg_state *s, int32_t e, int32_t fs);
 extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
+extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
 
 void ClkConfig(void);
 void PortConfig(void);
@@ -121,9 +122,9 @@ void TimerConfig(void)
 	TIMER4->CNT = 0;
 	TIMER4->PSG = 5 - 1;   // prescaller gets 24 MHz
 	TIMER4->ARR = 1024 - 1;	// TIM4 period is 23.4KHz
-	TIMER4->CCR1 = 1;
-	TIMER4->CCR2 = 1;
-	TIMER4->CCR3 = 1;
+	TIMER4->CCR1 = 512;
+	TIMER4->CCR2 = 512;
+	TIMER4->CCR3 = 512;
 	
 	// channel 1
 	TIMER4->CH1_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
@@ -314,6 +315,15 @@ void vector_sync_motor_controller(int32_t *abc, int32_t phase)
 	DAC->DAC1_DATA = abc[0] + 2048;
 }
 
+void wait_timer_ticks(int32_t t)
+{
+	int i;
+	for(i = 0; i < t; i++){
+		while(!(TIMER4->STATUS & 0x02));
+		TIMER4->STATUS = 0;
+	}				
+}
+
 __attribute__ ((section(".main_sec")))
 int main()
 {
@@ -332,15 +342,17 @@ int main()
 
 	SystemInit();
 
+	wait_timer_ticks(1000);
+
 	dca = get_dcA();
 	dcb = get_dcB();
 	
-	dreg.ki = 20;
+	dreg.ki = 100;
 	dreg.kp = 200;
 	dreg.a = 0;
 	dreg.y = 0;
 	
-	qreg.ki = 20;
+	qreg.ki = 100;
 	qreg.kp = 200;	
 	qreg.a = 0;
 	qreg.y = 0;	
@@ -356,10 +368,10 @@ int main()
 		// get the currents from ADC	
 		START_ADC_CH(3);	
 		WAIT_FOR_ADC;
-		ia = 0xfff&(ADC->ADC1_RESULT) - dca;
+		ia = (0xfff&(ADC->ADC1_RESULT)) - dca;
 		START_ADC_CH(4);	
 		WAIT_FOR_ADC;
-		ic = 0xfff&(ADC->ADC1_RESULT) - dcb;
+		ic = (0xfff&(ADC->ADC1_RESULT)) - dcb;
 		ib = -ia-ic;
 
 		PORTC->RXTX &= ~(1<<5);					
@@ -372,33 +384,6 @@ int main()
 				
 		// get the motor electrical angle x4 mechanical angle
 		phase = code & (1024-1);							
-/*
-		// vector sync motor controller
-		// convert abc currents to dq
-		abc[0] = ia;
-		abc[1] = ib;
-		abc[2] = ic;
-		abc_to_dq(abc, dq, 1023&(phase+250));
-		
-		// get the errors
-		ed = 0 - dq[0];
-		eq = 100 - dq[1];
-		
-		// regulators do its work
-		update(&dreg, ed , fsat);
-		update(&qreg, eq , fsat);		
-		
-		dq[0] = dreg.y;
-		dq[1] = qreg.y;
-		dq_to_abc(abc, dq, 1023&(phase+250));
-
-		TIMER4->CCR1 = abc[0]+512;
-		TIMER4->CCR2 = abc[1]+512;
-		TIMER4->CCR3 = abc[2]+512;
-		
-		DAC->DAC1_DATA = eq + 2048;
-*/
-
 /*
 		// simple sync motor controller
 		dq[0] = 0;
@@ -413,47 +398,62 @@ int main()
 		DAC->DAC1_DATA = abc[0] + 2048;
 */
 
-
-		ed = 50-ib;
+/*
+ 		// current regulator debug
+		ed = -50-ib;
 		update(&dreg, ed , fsat);
 		
-		vd = dreg.y >> 10;
+		vd = dreg.y>>10;
 		fsat = 0;
-		if(vd > 1024){
+		if(vd > 511){
 			fsat = 1;
-			vd = 1024;
+			vd = 511;
 		}		
+		
+		if(vd < -511){
+			fsat = 1;
+			vd = -511;
+		}				
 			
-		TIMER4->CCR2 = vd;
-		//DAC->DAC1_DATA = ib + 2048;
-		DAC->DAC1_DATA = ed + 2048;
+		TIMER4->CCR2 = vd+512;
+		//TIMER4->CCR1 = phase;
+		//DAC->DAC1_DATA = ia + 2048;
+		DAC->DAC1_DATA = (ed<<2) + 2048;
+		//DAC->DAC1_DATA = vd + 2048;
+		//DAC->DAC1_DATA = (phase-512) + 2048;
+*/
 
-
-		//phase = 0;
-		//phase = 1023&(phase+250);
-/*		
+		// vector sync motor controller
+		phase = 1023&(phase+250);
+		
+		// convert abc currents to dq
 		abc[0] = ia;
 		abc[1] = ib;
 		abc[2] = ic;
 		abc_to_dq(abc, dq, phase);
 		
+		// get the errors
 		ed = 0 - dq[0];
-		eq = 50 - dq[1];
+		eq = 200 - dq[1];
 		
+		// regulators do its work
 		update(&dreg, ed , fsat);
 		update(&qreg, eq , fsat);			
 		
+		// pwm modulation
 		dq[0] = dreg.y;
 		dq[1] = qreg.y;
-		//dq_to_abc(abc, dq, phase);
+
 		fsat = svpwm(abc, dq, phase);
+		//fsat = sinpwm(abc, dq, phase);
 		
 		TIMER4->CCR1 = (abc[0])+512;
 		TIMER4->CCR2 = (abc[1])+512;
 		TIMER4->CCR3 = (abc[2])+512;
 		
-		DAC->DAC1_DATA = ed + 2048;
-*/
-	}
+		//DAC->DAC1_DATA = ed + 2048;
+		//DAC->DAC1_DATA = phase;
+		DAC->DAC1_DATA = abc[0] + 2048;
 
+	}
 }

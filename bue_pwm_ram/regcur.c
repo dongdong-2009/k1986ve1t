@@ -106,6 +106,25 @@ void cord_atan(int32_t *v, int32_t *ang, int32_t *mag)
 	*mag = (kc[ns-1]*x) >> 10;
 }
 
+int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
+{
+	int32_t fs = 0;
+	int32_t mag;
+	int32_t ang;
+	cord_atan(dq, &ang, &mag);
+	
+	mag = mag >> 10;	
+	if(mag > 500) {
+		mag = 500;
+		fs = 1;
+	}
+	else fs = 0;
+	
+	dq_to_abc(abc, dq, phase);
+	
+	return fs;	
+}
+
 int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 {
 	int32_t fs = 0;
