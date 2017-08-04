@@ -209,77 +209,20 @@ int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	return fs;
 }
 
- 
-
-void pi_reg_cur(int flag)
+int32_t get_speed(int32_t enc)
 {
-	static struct pi_reg_state dreg = {0, 0, 0, 0};
-	static struct pi_reg_state qreg = {0, 0, 0, 0};
-	static int32_t phase = 0;
-	static int32_t fsat = 0;
+	int32_t denc;
+	static int32_t enc1 = 0;
+	static int32_t enc2 = 0;
+	int32_t rate = 60*(120000000/5/1024/8);
 	
-	int32_t dq[2];	
-	int32_t abc[3];
-	
-	int32_t ed;
-	int32_t eq;
-
-    switch(flag)
-    {
-	case 1:		
-		// convert dq voltages to abc			
-
-#ifdef USE_SVPWM
-
-		dq[0] = dreg.y;
-		dq[1] = qreg.y;				
-			
-		fsat = svpwm(abc, dq, phase);
-
-#else
-		dq[0] = dreg.y;
-		dq[1] = qreg.y;
-		dq_to_abc(abc, dq, phase);
-
-#endif							    
-
-	break;
-	case 2:		
-		
-		dreg.ki = 10;
-		dreg.kp = 1;
-		
-		qreg.ki = 10;
-		qreg.kp = 1;
-
-		// get the motor electrical angle x4 mechanical angle
-		phase = 0; //( (uint32_t)r_IN(4, 0) ) & (1024-1);
-
-		// get the currents from ADC
-		abc[0] = 0; //(int32_t)r_IN(0, 0);
-		abc[1] = 0; //(int32_t)r_IN(0, 1);
-		abc[2] = 0; //(int32_t)r_IN(0, 2);
-		// convert abc currents to dq
-		abc_to_dq(abc, dq, phase);
-		
-		// get the errors
-		ed = 0 - dq[0];
-		eq = 0- dq[1];
-		
-		// regulators do its work
-		update(&dreg, ed , fsat);
-		update(&qreg, eq , fsat);
-
-	break;
-	case 4:
-		// some init here
-	    dreg.a = 0;
-	    dreg.y = 0;
-	    
-	    qreg.a = 0;
-	    qreg.y = 0;	    
-	    
-	break;
-    }
-}
+	denc = (enc-enc2);
+	enc2 = enc1;
+	enc1 = enc;
+	if(abs(denc) > 1000){
+		if(denc < 0) denc += 4096;
+		else denc -= 4096;
+	}		
+	return ((denc>>1)*rate)>>12;
+} 
 

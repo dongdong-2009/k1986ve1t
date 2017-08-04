@@ -23,6 +23,7 @@ extern void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle);
 extern void update(struct pi_reg_state *s, int32_t e, int32_t fs);
 extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
+extern int32_t get_speed(int32_t enc);
 
 void ClkConfig(void);
 void PortConfig(void);
@@ -312,7 +313,7 @@ void vector_sync_motor_controller(int32_t *abc, int32_t phase)
 	TIMER4->CCR2 = abc[1]+512;
 	TIMER4->CCR3 = abc[0]+512;
 	
-	DAC->DAC1_DATA = abc[0] + 2048;
+	//DAC->DAC1_DATA = abc[0] + 2048;
 }
 
 void wait_timer_ticks(int32_t t)
@@ -324,6 +325,7 @@ void wait_timer_ticks(int32_t t)
 	}				
 }
 
+
 __attribute__ ((section(".main_sec")))
 int main()
 {
@@ -334,11 +336,16 @@ int main()
 	uint32_t phase = 0;
 	int32_t ia, ib, ic;
 	int32_t dca, dcb;
-	int32_t ed, eq;
+	int32_t ed, eq, es;
 	int32_t vd, vq;
 	struct pi_reg_state dreg;
 	struct pi_reg_state qreg;
+	struct pi_reg_state sreg;
 	int32_t fsat = 0;
+	uint32_t tcnt = 0;
+	int32_t speed;
+	int32_t refspeed = 1000;
+	int32_t qref;
 
 	SystemInit();
 
@@ -356,6 +363,15 @@ int main()
 	qreg.kp = 200;	
 	qreg.a = 0;
 	qreg.y = 0;	
+	
+	/*
+	sreg.ki = 200;
+	sreg.kp = 2000;
+	*/
+	sreg.ki = 0;
+	sreg.kp = 2000;	
+	sreg.a = 0;
+	sreg.y = 0;		
 
 	while(1)
 	{	
@@ -374,14 +390,30 @@ int main()
 		ic = (0xfff&(ADC->ADC1_RESULT)) - dcb;
 		ib = -ia-ic;
 
-		PORTC->RXTX &= ~(1<<5);					
-
 		while(!(TIMER4->STATUS & 0x02));
-		TIMER4->STATUS = 0;				
+		TIMER4->STATUS = 0;
+		
+		PORTC->RXTX &= ~(1<<5);							
 
+		// get data from encoder
 		code = g2b((MAXENC-1) & (SSP2->DR));	
 		//DAC->DAC1_DATA = code;
-				
+		tcnt++;
+
+		if( (0x7&tcnt) == 0){			
+			// 3kHz
+			speed = get_speed(code);		
+			es = refspeed- speed;		
+			update(&sreg, es, 0);
+			
+			qref = sreg.y>>10;
+			DAC->DAC1_DATA = (speed>>1) + 2048;
+		}		
+		
+		if( (0xffff&tcnt) == 0){					
+			//refspeed *= -1;
+		}
+
 		// get the motor electrical angle x4 mechanical angle
 		phase = code & (1024-1);							
 /*
@@ -434,7 +466,7 @@ int main()
 		
 		// get the errors
 		ed = 0 - dq[0];
-		eq = 200 - dq[1];
+		eq = qref - dq[1];
 		
 		// regulators do its work
 		update(&dreg, ed , fsat);
@@ -453,7 +485,7 @@ int main()
 		
 		//DAC->DAC1_DATA = ed + 2048;
 		//DAC->DAC1_DATA = phase;
-		DAC->DAC1_DATA = abc[0] + 2048;
+		//DAC->DAC1_DATA = abc[0] + 2048;
 
 	}
 }
