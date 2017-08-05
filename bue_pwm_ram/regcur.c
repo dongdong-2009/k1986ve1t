@@ -209,7 +209,7 @@ int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	return fs;
 }
 
-int32_t get_speed(int32_t enc)
+int32_t get_speed(int32_t enc, int32_t *pos)
 {
 	int32_t denc;
 	static int32_t enc1 = 0;
@@ -223,6 +223,9 @@ int32_t get_speed(int32_t enc)
 		if(denc < 0) denc += 4096;
 		else denc -= 4096;
 	}		
+	
+	*pos += denc;
+	
 	return ((denc>>1)*rate)>>12;
 } 
 

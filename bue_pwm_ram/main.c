@@ -18,12 +18,14 @@ struct pi_reg_state{
 	int32_t y;	
 };
 
+extern const int32_t cos_tb[1024];
+
 extern void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
 extern void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle);
 extern void update(struct pi_reg_state *s, int32_t e, int32_t fs);
 extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
-extern int32_t get_speed(int32_t enc);
+extern int32_t get_speed(int32_t enc, int32_t *pos);
 
 void ClkConfig(void);
 void PortConfig(void);
@@ -341,11 +343,14 @@ int main()
 	struct pi_reg_state dreg;
 	struct pi_reg_state qreg;
 	struct pi_reg_state sreg;
+	struct pi_reg_state preg;
 	int32_t fsat = 0;
 	uint32_t tcnt = 0;
 	int32_t speed;
 	int32_t refspeed = 1000;
 	int32_t qref;
+	int32_t position = 0;
+	int32_t refpos = 0;
 
 	SystemInit();
 
@@ -372,10 +377,14 @@ int main()
 	sreg.kp = 2000;	
 	sreg.a = 0;
 	sreg.y = 0;		
+	
+	preg.ki = 0;
+	preg.kp = 400;	
+	preg.a = 0;
+	preg.y = 0;		
 
 	while(1)
-	{	
-		
+	{			
 		PORTC->RXTX |= (1<<5);	
 		
 		//ADC->ADC1_CFG |= ADC1_CFG_Cfg_REG_GO; 	// start adc conversion
@@ -402,17 +411,34 @@ int main()
 
 		if( (0x7&tcnt) == 0){			
 			// 3kHz
-			speed = get_speed(code);		
-			es = refspeed- speed;		
-			update(&sreg, es, 0);
+			speed = get_speed(code, &position);		
+
+			update(&preg, (refpos - position), 0);
+			refspeed = preg.y>>10;
+			
+			//if(refspeed > 2000) refspeed = 2000;
+			//if(refspeed < -2000) refspeed = -2000;
+
+			update(&sreg, (refspeed - speed), 0);
 			
 			qref = sreg.y>>10;
-			DAC->DAC1_DATA = (speed>>1) + 2048;
+			
+			if(qref > 200) qref = 200;
+			if(qref < -200) qref = -200;
+			
+			//DAC->DAC1_DATA = (speed>>1) + 2048;
+			DAC->DAC1_DATA = (position>>5) + 2048;
 		}		
 		
-		if( (0xffff&tcnt) == 0){					
-			//refspeed *= -1;
+		if( (0xffff&tcnt) == 0){
+			/*
+			static int32_t dpos = 50000;
+			refpos += dpos;
+			dpos *= -1;
+			*/			
 		}
+		
+		refpos = cos_tb[(1024-1)&(tcnt>>5)]<<5;
 
 		// get the motor electrical angle x4 mechanical angle
 		phase = code & (1024-1);							
