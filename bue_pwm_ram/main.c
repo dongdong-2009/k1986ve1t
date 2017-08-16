@@ -11,6 +11,10 @@
 #define START_ADC_CH(x) ADC->ADC1_CFG = (0x0<<ADC1_CFG_Delay_Go_OFFS) + ADC1_CFG_Cfg_REG_GO + ADC1_CFG_Cfg_REG_ADON + ((x)<<ADC1_CFG_Cfg_REG_CHS_OFFS) + ADC1_CFG_Cfg_REG_CLKS
 #define WAIT_FOR_ADC while(0 == (ADC->ADC1_STATUS & ADC1_STATUS_Flg_REG_EOCIF))
 
+
+int32_t refpos = 0;
+int32_t reflinpos = 0;
+
 struct pi_reg_state{
 	int32_t ki;
 	int32_t kp;
@@ -288,36 +292,6 @@ int32_t get_dcB()
 	return (a>>10);
 }
 
-void vector_sync_motor_controller(int32_t *abc, int32_t phase)
-{
-	int32_t dq[2];	
-	int32_t ed, eq;	
-	struct pi_reg_state dreg;
-	struct pi_reg_state qreg;	
-	int32_t fsat;
-	
-	// convert abc currents to dq
-	abc_to_dq(abc, dq, phase);
-	
-	// get the errors
-	ed = 0 - dq[0];
-	eq = 200 - dq[1];
-	
-	// regulators do its work
-	update(&dreg, ed , fsat);
-	update(&qreg, eq , fsat);		
-	
-	dq[0] = dreg.y;
-	dq[1] = qreg.y;
-	dq_to_abc(abc, dq, 1023&(phase+250)); 
-
-	TIMER4->CCR1 = abc[2]+512;
-	TIMER4->CCR2 = abc[1]+512;
-	TIMER4->CCR3 = abc[0]+512;
-	
-	//DAC->DAC1_DATA = abc[0] + 2048;
-}
-
 void wait_timer_ticks(int32_t t)
 {
 	int i;
@@ -327,6 +301,17 @@ void wait_timer_ticks(int32_t t)
 	}				
 }
 
+/*
+void init_pos(void)
+{
+	int32_t code;
+	
+	SSP2->DR = 0x555; // start encoder request
+	while(0 == (SSP2->SR & SSP_SR_RFF));	
+	code = g2b((MAXENC-1) & (SSP2->DR));		
+	
+}
+*/
 
 __attribute__ ((section(".main_sec")))
 int main()
@@ -350,7 +335,9 @@ int main()
 	int32_t refspeed = 1000;
 	int32_t qref;
 	int32_t position = 0;
-	int32_t refpos = 0;
+	//int32_t refpos = 0;
+	int32_t linpos = 0;
+	int32_t startlinpos = 0;
 
 	SystemInit();
 
@@ -368,7 +355,7 @@ int main()
 	qreg.kp = 200;	
 	qreg.a = 0;
 	qreg.y = 0;	
-	
+		
 	/*
 	sreg.ki = 200;
 	sreg.kp = 2000;
@@ -379,16 +366,23 @@ int main()
 	sreg.y = 0;		
 	
 	preg.ki = 0;
-	preg.kp = 400;	
+	preg.kp = 3000;	
 	preg.a = 0;
 	preg.y = 0;		
+		
+	refpos = 0;
+	
+	START_ADC_CH(5);	
+	WAIT_FOR_ADC;		
+	startlinpos = (0xfff&(ADC->ADC1_RESULT));	
+	reflinpos = startlinpos;	
+	//refpos = (2200-startlinpos)*49;
 
 	while(1)
 	{			
 		PORTC->RXTX |= (1<<5);	
-		
-		//ADC->ADC1_CFG |= ADC1_CFG_Cfg_REG_GO; 	// start adc conversion
-		SSP2->DR = 0x555; 						
+
+		SSP2->DR = 0x555; // start encoder request
 		
 		// get the currents from ADC	
 		START_ADC_CH(3);	
@@ -398,6 +392,11 @@ int main()
 		WAIT_FOR_ADC;
 		ic = (0xfff&(ADC->ADC1_RESULT)) - dcb;
 		ib = -ia-ic;
+		
+		START_ADC_CH(5);	
+		WAIT_FOR_ADC;		
+		linpos = (0xfff&(ADC->ADC1_RESULT));
+		//DAC->DAC1_DATA = linpos;
 
 		while(!(TIMER4->STATUS & 0x02));
 		TIMER4->STATUS = 0;
@@ -414,7 +413,10 @@ int main()
 			speed = get_speed(code, &position);		
 
 			update(&preg, (refpos - position), 0);
+			//update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>10;
+			
+			//refspeed = -1000;
 			
 			//if(refspeed > 2000) refspeed = 2000;
 			//if(refspeed < -2000) refspeed = -2000;
@@ -423,22 +425,30 @@ int main()
 			
 			qref = sreg.y>>10;
 			
-			if(qref > 200) qref = 200;
-			if(qref < -200) qref = -200;
+			if(qref > 500) qref = 500;
+			if(qref < -500) qref = -500;
 			
 			//DAC->DAC1_DATA = (speed>>1) + 2048;
-			DAC->DAC1_DATA = (position>>5) + 2048;
+			//DAC->DAC1_DATA = (position>>5) + 2048;
+			//DAC->DAC1_DATA = qref + 2048;
+			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
+			DAC->DAC1_DATA = linpos;			
+			
 		}		
 		
 		if( (0xffff&tcnt) == 0){
-			/*
-			static int32_t dpos = 50000;
-			refpos += dpos;
-			dpos *= -1;
-			*/			
+			static int32_t dpos = 1300;
+			reflinpos = 2200+dpos;
+			dpos *= -1;			
+			refpos = (reflinpos - startlinpos)*49;			
 		}
 		
-		refpos = cos_tb[(1024-1)&(tcnt>>5)]<<5;
+		//refpos = -cos_tb[(1024-1)&(tcnt>>4)]<<5;
+		
+		
+		//reflinpos = ((cos_tb[(1024-1)&(tcnt>>5)])>>1)+2200;
+		//refpos = (reflinpos - startlinpos)*49;
+		
 
 		// get the motor electrical angle x4 mechanical angle
 		phase = code & (1024-1);							
@@ -453,7 +463,7 @@ int main()
 		TIMER4->CCR2 = abc[1]+512;
 		TIMER4->CCR3 = abc[2]+512;
 		//DAC->DAC1_DATA = (ib<<2) + 2048;
-		DAC->DAC1_DATA = abc[0] + 2048;
+		//DAC->DAC1_DATA = abc[0] + 2048;
 */
 
 /*

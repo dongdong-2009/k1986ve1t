@@ -14,90 +14,91 @@ SRAM2            0x20100000         0x00004000         xrw
 Linker script and memory map
 
 
-.text           0x20100000     0x12dc
+.text           0x20100000     0x12e4
  *(.main_sec)
- .main_sec      0x20100000      0x330 main.o
+ .main_sec      0x20100000      0x3f0 main.o
                 0x20100000                main
  *(.text)
- .text          0x20100330      0x680 main.o
-                0x20100330                sleep
-                0x20100364                PortConfig
-                0x201004ac                ClkConfig
-                0x20100520                TimerConfig
-                0x20100704                adc_init
-                0x20100734                dac_init
-                0x20100760                ssi_init
-                0x201007a8                b2g
-                0x201007c0                g2b
-                0x201007f0                SystemInit
-                0x20100814                get_dcA
-                0x20100868                get_dcB
-                0x201008bc                vector_sync_motor_controller
-                0x20100974                wait_timer_ticks
- .text          0x201009b0        0x0 cos_tb.o
- .text          0x201009b0      0x918 regcur.o
-                0x201009b0                mycos
-                0x201009d0                mysin
-                0x201009f8                update
-                0x20100a28                dot3
-                0x20100a44                abc_to_dq
-                0x20100ad4                dq_to_abc
-                0x20100b5c                cord_atan
-                0x20100d00                sinpwm
-                0x20100f00                svpwm
-                0x20101278                get_speed
- .text          0x201012c8       0x14 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
-                0x201012c8                __gnu_thumb1_case_uqi
+ .text          0x201003f0      0x5c8 main.o
+                0x201003f0                sleep
+                0x20100424                PortConfig
+                0x2010056c                ClkConfig
+                0x201005e0                TimerConfig
+                0x201007c4                adc_init
+                0x201007f4                dac_init
+                0x20100820                ssi_init
+                0x20100868                b2g
+                0x20100880                g2b
+                0x201008b0                SystemInit
+                0x201008d4                get_dcA
+                0x20100928                get_dcB
+                0x2010097c                wait_timer_ticks
+ .text          0x201009b8        0x0 cos_tb.o
+ .text          0x201009b8      0x918 regcur.o
+                0x201009b8                mycos
+                0x201009d8                mysin
+                0x20100a00                update
+                0x20100a30                dot3
+                0x20100a4c                abc_to_dq
+                0x20100adc                dq_to_abc
+                0x20100b64                cord_atan
+                0x20100d08                sinpwm
+                0x20100f08                svpwm
+                0x20101280                get_speed
+ .text          0x201012d0       0x14 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
+                0x201012d0                __gnu_thumb1_case_uqi
 
-.rodata         0x201012dc     0x1040
- .rodata        0x201012dc     0x1000 cos_tb.o
-                0x201012dc                cos_tb
- .rodata        0x201022dc       0x40 regcur.o
+.rodata         0x201012e4     0x1040
+ .rodata        0x201012e4     0x1000 cos_tb.o
+                0x201012e4                cos_tb
+ .rodata        0x201022e4       0x40 regcur.o
 
-.glue_7         0x2010231c        0x0
- .glue_7        0x2010231c        0x0 linker stubs
+.glue_7         0x20102324        0x0
+ .glue_7        0x20102324        0x0 linker stubs
 
-.glue_7t        0x2010231c        0x0
- .glue_7t       0x2010231c        0x0 linker stubs
+.glue_7t        0x20102324        0x0
+ .glue_7t       0x20102324        0x0 linker stubs
 
-.vfp11_veneer   0x2010231c        0x0
- .vfp11_veneer  0x2010231c        0x0 linker stubs
+.vfp11_veneer   0x20102324        0x0
+ .vfp11_veneer  0x20102324        0x0 linker stubs
 
-.v4_bx          0x2010231c        0x0
- .v4_bx         0x2010231c        0x0 linker stubs
+.v4_bx          0x20102324        0x0
+ .v4_bx         0x20102324        0x0 linker stubs
 
-.iplt           0x2010231c        0x0
- .iplt          0x2010231c        0x0 main.o
+.iplt           0x20102324        0x0
+ .iplt          0x20102324        0x0 main.o
 
-.rel.dyn        0x2010231c        0x0
- .rel.iplt      0x2010231c        0x0 main.o
- .rel.got       0x2010231c        0x0 main.o
+.rel.dyn        0x20102324        0x0
+ .rel.iplt      0x20102324        0x0 main.o
+ .rel.got       0x20102324        0x0 main.o
 
-.data           0x20000000        0x4
+.data           0x20000000        0x8
  *(.data)
- .data          0x20000000        0x4 main.o
+ .data          0x20000000        0x8 main.o
                 0x20000000                test_pwm
- .data          0x20000004        0x0 cos_tb.o
- .data          0x20000004        0x0 regcur.o
- .data          0x20000004        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
+ .data          0x20000008        0x0 cos_tb.o
+ .data          0x20000008        0x0 regcur.o
+ .data          0x20000008        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
 
-.igot.plt       0x20000004        0x0
- .igot.plt      0x20000004        0x0 main.o
+.igot.plt       0x20000008        0x0
+ .igot.plt      0x20000008        0x0 main.o
 
-.got            0x20000004        0x4
- .got           0x20000004        0x4 main.o
+.got            0x20000008        0x4
+ .got           0x20000008        0x4 main.o
 
-.got.plt        0x20000008        0xc
- .got.plt       0x20000008        0xc main.o
-                0x20000008                _GLOBAL_OFFSET_TABLE_
+.got.plt        0x2000000c        0xc
+ .got.plt       0x2000000c        0xc main.o
+                0x2000000c                _GLOBAL_OFFSET_TABLE_
 
-.bss            0x20000014        0xc
+.bss            0x20000018       0x14
  *(.bss)
- .bss           0x20000014        0x4 main.o
-                0x20000014                system_time
- .bss           0x20000018        0x0 cos_tb.o
- .bss           0x20000018        0x8 regcur.o
- .bss           0x20000020        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
+ .bss           0x20000018        0xc main.o
+                0x20000018                refpos
+                0x2000001c                reflinpos
+                0x20000020                system_time
+ .bss           0x20000024        0x0 cos_tb.o
+ .bss           0x20000024        0x8 regcur.o
+ .bss           0x2000002c        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
 LOAD main.o
 LOAD cos_tb.o
 LOAD regcur.o
@@ -106,15 +107,15 @@ LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv
 END GROUP
 OUTPUT(bue_pwm.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x11b4
- .debug_info    0x00000000      0x984 main.o
- .debug_info    0x00000984       0x97 cos_tb.o
- .debug_info    0x00000a1b      0x799 regcur.o
+.debug_info     0x00000000     0x1146
+ .debug_info    0x00000000      0x916 main.o
+ .debug_info    0x00000916       0x97 cos_tb.o
+ .debug_info    0x000009ad      0x799 regcur.o
 
-.debug_abbrev   0x00000000      0x4c7
- .debug_abbrev  0x00000000      0x223 main.o
- .debug_abbrev  0x00000223       0x75 cos_tb.o
- .debug_abbrev  0x00000298      0x22f regcur.o
+.debug_abbrev   0x00000000      0x47d
+ .debug_abbrev  0x00000000      0x1d9 main.o
+ .debug_abbrev  0x000001d9       0x75 cos_tb.o
+ .debug_abbrev  0x0000024e      0x22f regcur.o
 
 .debug_aranges  0x00000000       0x60
  .debug_aranges
@@ -128,17 +129,17 @@ OUTPUT(bue_pwm.elf elf32-littlearm)
  .debug_ranges  0x00000000       0x18 main.o
  .debug_ranges  0x00000018      0x220 regcur.o
 
-.debug_line     0x00000000      0x603
- .debug_line    0x00000000      0x269 main.o
- .debug_line    0x00000269       0x49 cos_tb.o
- .debug_line    0x000002b2      0x351 regcur.o
+.debug_line     0x00000000      0x610
+ .debug_line    0x00000000      0x276 main.o
+ .debug_line    0x00000276       0x49 cos_tb.o
+ .debug_line    0x000002bf      0x351 regcur.o
 
-.debug_str      0x00000000      0x5a9
- .debug_str     0x00000000      0x4a4 main.o
-                                0x4d8 (size before relaxing)
- .debug_str     0x000004a4        0x9 cos_tb.o
+.debug_str      0x00000000      0x5a7
+ .debug_str     0x00000000      0x49b main.o
+                                0x4d6 (size before relaxing)
+ .debug_str     0x0000049b       0x10 cos_tb.o
                                 0x115 (size before relaxing)
- .debug_str     0x000004ad       0xfc regcur.o
+ .debug_str     0x000004ab       0xfc regcur.o
                                 0x1a1 (size before relaxing)
 
 .comment        0x00000000       0x6e
@@ -158,9 +159,9 @@ OUTPUT(bue_pwm.elf elf32-littlearm)
  .ARM.attributes
                 0x00000093       0x1e /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
 
-.debug_frame    0x00000000      0x318
- .debug_frame   0x00000000      0x1d4 main.o
- .debug_frame   0x000001d4      0x144 regcur.o
+.debug_frame    0x00000000      0x2f8
+ .debug_frame   0x00000000      0x1b4 main.o
+ .debug_frame   0x000001b4      0x144 regcur.o
 
 .debug_loc      0x00000000     0x2080
  .debug_loc     0x00000000     0x2080 regcur.o
