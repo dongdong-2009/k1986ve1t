@@ -1,0 +1,230 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000     0x2390
+                0x00000000                . = ALIGN (0x4)
+ *(.interrupt_vector)
+ .interrupt_vector
+                0x00000000       0xc0 startup.o
+                0x00000000                table_interrupt_vector
+ *(.text)
+ .text          0x000000c0      0x9d4 main.o
+                0x000000c0                sleep
+                0x000000ec                PortConfig
+                0x00000224                ClkConfig
+                0x00000298                TimerConfig
+                0x0000047c                adc_init
+                0x000004ac                dac_init
+                0x000004d8                ssi_init
+                0x00000520                b2g
+                0x00000538                g2b
+                0x00000568                SystemInit
+                0x0000058c                get_dcA
+                0x000005e0                get_dcB
+                0x00000634                wait_timer_ticks
+                0x00000670                get_phase
+                0x000006a4                main
+ .text          0x00000a94        0x0 cos_tb.o
+ .text          0x00000a94      0x83c regcur.o
+                0x00000a94                mycos
+                0x00000aa4                mysin
+                0x00000abc                update
+                0x00000aec                dot3
+                0x00000b08                abc_to_dq
+                0x00000b90                dq_to_abc
+                0x00000c0c                cord_atan
+                0x00000da8                sinpwm
+                0x00000f60                svpwm
+                0x0000125c                get_speed
+                0x000012a8                mfilter
+ .text          0x000012d0       0x68 startup.o
+                0x000012d0                Reset_Handler
+                0x000012d0                handler_reset
+                0x00001330                DMA_Handler
+                0x00001330                UART2_Handler
+                0x00001330                TIMER4_Handler
+                0x00001330                HardFault_Handler
+                0x00001330                ARINC429T2_Handler
+                0x00001330                EXT_INT1_Handler
+                0x00001330                SysTick_Handler
+                0x00001330                PendSV_Handler
+                0x00001330                NMI_Handler
+                0x00001330                ADC_Handler
+                0x00001330                TIMER2_Handler
+                0x00001330                WWDG_Handler
+                0x00001330                POWER_Handler
+                0x00001330                BKP_Handler
+                0x00001330                TIMER1_Handler
+                0x00001330                MIL_STD_1553B1_Handler
+                0x00001330                CAN2_Handler
+                0x00001330                TIMER3_Handler
+                0x00001330                default_handler
+                0x00001330                EXT_INT2_Handler
+                0x00001330                UART1_Handler
+                0x00001330                USB_Handler
+                0x00001330                ETHERNET_Handler
+                0x00001330                ARINC429T4_Handler
+                0x00001330                EXT_INT4_Handler
+                0x00001330                MIL_STD_1553B2_Handler
+                0x00001330                CAN1_Handler
+                0x00001330                EXT_INT3_Handler
+                0x00001330                SVC_Handler
+                0x00001330                BUSY_Handler
+                0x00001330                ARINC429T3_Handler
+                0x00001330                SSP2_Handler
+                0x00001330                SSP3_Handler
+                0x00001330                ARINC429T1_Handler
+                0x00001330                ARINC429R_Handler
+                0x00001330                SSP1_Handler
+ *(.text*)
+ *(.rodata)
+ .rodata        0x00001338     0x1000 cos_tb.o
+                0x00001338                cos_tb
+ .rodata        0x00002338       0x58 regcur.o
+ *(.rodata*)
+                0x00002390                . = ALIGN (0x4)
+                0x00002390                _data_flash = .
+
+.glue_7         0x00002390        0x0
+ .glue_7        0x00002390        0x0 linker stubs
+
+.glue_7t        0x00002390        0x0
+ .glue_7t       0x00002390        0x0 linker stubs
+
+.vfp11_veneer   0x00002390        0x0
+ .vfp11_veneer  0x00002390        0x0 linker stubs
+
+.v4_bx          0x00002390        0x0
+ .v4_bx         0x00002390        0x0 linker stubs
+
+.iplt           0x00002390        0x0
+ .iplt          0x00002390        0x0 main.o
+
+.rel.dyn        0x00002390        0x0
+ .rel.iplt      0x00002390        0x0 main.o
+
+.data           0x20000000        0x4 load address 0x00002390
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+ .data          0x20000004        0x0 cos_tb.o
+ .data          0x20000004        0x0 regcur.o
+ .data          0x20000004        0x0 startup.o
+ *(.data*)
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _data_end = .
+
+.igot.plt       0x20000004        0x0 load address 0x00002394
+ .igot.plt      0x20000004        0x0 main.o
+
+.bss            0x20000004       0x9c load address 0x00002394
+                0x20000004                . = ALIGN (0x4)
+                0x20000004                _bss_begin = .
+                0x20000004                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x20000004        0xc main.o
+                0x20000004                refpos
+                0x20000008                reflinpos
+                0x2000000c                system_time
+ .bss           0x20000010        0x0 cos_tb.o
+ .bss           0x20000010       0x90 regcur.o
+ .bss           0x200000a0        0x0 startup.o
+ *(.bss*)
+ *(COMMON)
+                0x200000a0                . = ALIGN (0x4)
+                0x200000a0                _bss_end = .
+                0x200000a0                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x200000a0      0x400 load address 0x00002430
+                0x200004a0                . = (. + _stack_size)
+ *fill*         0x200000a0      0x400 
+LOAD main.o
+LOAD cos_tb.o
+LOAD regcur.o
+LOAD startup.o
+START GROUP
+LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a
+END GROUP
+OUTPUT(bue.elf elf32-littlearm)
+
+.debug_info     0x00000000     0x12a5
+ .debug_info    0x00000000      0x920 main.o
+ .debug_info    0x00000920       0x97 cos_tb.o
+ .debug_info    0x000009b7      0x7fd regcur.o
+ .debug_info    0x000011b4       0xf1 startup.o
+
+.debug_abbrev   0x00000000      0x539
+ .debug_abbrev  0x00000000      0x1ea main.o
+ .debug_abbrev  0x000001ea       0x75 cos_tb.o
+ .debug_abbrev  0x0000025f      0x22f regcur.o
+ .debug_abbrev  0x0000048e       0xab startup.o
+
+.debug_aranges  0x00000000       0x78
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x18 cos_tb.o
+ .debug_aranges
+                0x00000038       0x20 regcur.o
+ .debug_aranges
+                0x00000058       0x20 startup.o
+
+.debug_line     0x00000000      0x64e
+ .debug_line    0x00000000      0x27d main.o
+ .debug_line    0x0000027d       0x4a cos_tb.o
+ .debug_line    0x000002c7      0x337 regcur.o
+ .debug_line    0x000005fe       0x50 startup.o
+
+.debug_str      0x00000000      0x64a
+ .debug_str     0x00000000      0x497 main.o
+                                0x4d8 (size before relaxing)
+ .debug_str     0x00000497       0x10 cos_tb.o
+                                0x107 (size before relaxing)
+ .debug_str     0x000004a7       0xfe regcur.o
+                                0x19b (size before relaxing)
+ .debug_str     0x000005a5       0xa5 startup.o
+                                0x143 (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f cos_tb.o
+ .comment       0x0000006e       0x6f regcur.o
+ .comment       0x0000006e       0x6f startup.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 cos_tb.o
+ .ARM.attributes
+                0x00000062       0x31 regcur.o
+ .ARM.attributes
+                0x00000093       0x31 startup.o
+
+.debug_frame    0x00000000      0x364
+ .debug_frame   0x00000000      0x1d0 main.o
+ .debug_frame   0x000001d0      0x148 regcur.o
+ .debug_frame   0x00000318       0x4c startup.o
+
+.debug_loc      0x00000000     0x1c38
+ .debug_loc     0x00000000     0x1c38 regcur.o
+
+.debug_ranges   0x00000000      0x1b8
+ .debug_ranges  0x00000000      0x1b8 regcur.o

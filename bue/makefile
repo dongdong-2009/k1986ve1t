@@ -1,5 +1,5 @@
 ##################################
-# k1986ve1t Makefile
+# stm32 minimal example Makefile
 ##################################
 
 CC = arm-none-eabi-gcc
@@ -8,35 +8,38 @@ CP = arm-none-eabi-objcopy
 
 LKR_SCRIPT = k1986ve1t.ld
 
-INCLUDES =  -I../inc
+IMAGE = $(shell pwd)/bue.elf
 
-IMAGE = $(shell pwd)/blink.elf
-	
-CFLAGS  = -c -fno-common -nostdlib -fno-builtin -ffreestanding -O0 -g 
-CFLAGS  += -mcpu=cortex-m1 -mthumb $(INCLUDES)
-LFLAGS  = -nostartfiles -T$(LKR_SCRIPT)
+CFLAGS  = -c -fno-common -g -mcpu=cortex-m1 -mthumb -I../inc
+LFLAGS  = -nostartfiles -T$(LKR_SCRIPT) 
+LFLAGS  += -L/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m -L/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/arm-none-eabi/lib/armv6-m
+LIBS = --start-group -lgcc --end-group
 CPFLAGS = -Obinary
 
-all: blink.bin
-	@echo $(IMAGE)
-
+all: bue.bin
 
 startup.o: startup.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -O0 -o startup.o startup.c
+
+regcur.o: regcur.c
+	$(CC) $(CFLAGS) -O3 -o regcur.o regcur.c
+
+cos_tb.o: cos_tb.c
+	$(CC) $(CFLAGS) -O0 -o cos_tb.o cos_tb.c
 
 main.o: main.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -O0 -o main.o main.c
 
-blink.elf: main.o startup.o
-	$(LD) $(LFLAGS) -Map blink.map -o $@ $^
+bue.elf: main.o regcur.o cos_tb.o startup.o
+	$(LD) $(LFLAGS) -Map test.map -o bue.elf main.o cos_tb.o regcur.o startup.o $(LIBS)
 
-blink.bin: blink.elf
-	$(CP) $(CPFLAGS) $< $@
-	arm-none-eabi-objdump -d blink.elf > blink.s
+bue.bin: bue.elf
+	$(CP) $(CPFLAGS) bue.elf bue.bin
+	arm-none-eabi-objdump -d bue.elf > main.s
 clean:
-	rm -rf *.o *.elf *.bin
+	rm -rf *.o *.elf *.bin *.map
 
-load: blink.elf
+load: bue.elf
 	../mdr1986x-JFlash-master/loadjlink $(IMAGE)
 
 debug:

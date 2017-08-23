@@ -30,6 +30,7 @@ extern void update(struct pi_reg_state *s, int32_t e, int32_t fs);
 extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t get_speed(int32_t enc, int32_t *pos);
+extern int32_t mfilter(int32_t x);
 
 void ClkConfig(void);
 void PortConfig(void);
@@ -75,7 +76,7 @@ void PortConfig()
 	
 	// inputs for adc
 	RST_CLK->PER_CLOCK |= 1<<24;	 		  //clock of PORTD ON
-	PORTD->ANALOG &= ~( (1<<10) + (1<<11) );  // PD10 - ADC3, PD11 - ADC4
+	//PORTD->ANALOG &= ~( (1<<7) + (1<<10) + (1<<11) );  // PD10 - ADC3, PD11 - ADC4
 	
 	// порты для ssp2 
 	// SSP_RXD - PD8
@@ -301,23 +302,23 @@ void wait_timer_ticks(int32_t t)
 	}				
 }
 
-/*
+
 void init_pos(void)
 {
 	int32_t code;
 	
 	SSP2->DR = 0x555; // start encoder request
-	while(0 == (SSP2->SR & SSP_SR_RFF));	
+	while(0 == (SSP2->SR & SSP_SR_RNE));	
 	code = g2b((MAXENC-1) & (SSP2->DR));		
 	
 }
-*/
+
 
 __attribute__ ((section(".main_sec")))
 int main()
 {
 	uint32_t code;
-	int i = 0;	
+	int32_t i = 0;	
 	int32_t dq[2];	
 	int32_t abc[3];	
 	uint32_t phase = 0;
@@ -375,8 +376,9 @@ int main()
 	START_ADC_CH(5);	
 	WAIT_FOR_ADC;		
 	startlinpos = (0xfff&(ADC->ADC1_RESULT));	
-	reflinpos = startlinpos;	
-	//refpos = (2200-startlinpos)*49;
+	reflinpos = startlinpos;
+	
+	init_pos();	
 
 	while(1)
 	{			
@@ -384,6 +386,13 @@ int main()
 
 		SSP2->DR = 0x555; // start encoder request
 		
+		START_ADC_CH(0);
+		WAIT_FOR_ADC;		
+		i = mfilter( 5*(0xfff&(ADC->ADC1_RESULT)) );
+		//i = 5*(0xfff&(ADC->ADC1_RESULT));
+		reflinpos = ((i+(i>>3))>>3)+700;		
+		DAC->DAC1_DATA = reflinpos;
+
 		// get the currents from ADC	
 		START_ADC_CH(3);	
 		WAIT_FOR_ADC;
@@ -393,7 +402,7 @@ int main()
 		ic = (0xfff&(ADC->ADC1_RESULT)) - dcb;
 		ib = -ia-ic;
 		
-		START_ADC_CH(5);	
+		START_ADC_CH(5);
 		WAIT_FOR_ADC;		
 		linpos = (0xfff&(ADC->ADC1_RESULT));
 		//DAC->DAC1_DATA = linpos;
@@ -425,14 +434,16 @@ int main()
 			
 			qref = sreg.y>>10;
 			
-			if(qref > 500) qref = 500;
-			if(qref < -500) qref = -500;
+			if(qref > 1000) qref = 1000;
+			if(qref < -1000) qref = -1000;
 			
 			//DAC->DAC1_DATA = (speed>>1) + 2048;
 			//DAC->DAC1_DATA = (position>>5) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
-			DAC->DAC1_DATA = linpos;			
+			//DAC->DAC1_DATA = linpos;			
+			
+			//refpos = (reflinpos - startlinpos)*49;
 			
 		}		
 		
@@ -443,10 +454,11 @@ int main()
 			refpos = (reflinpos - startlinpos)*49;			
 		}
 		
+		
 		//refpos = -cos_tb[(1024-1)&(tcnt>>4)]<<5;
 		
 		
-		//reflinpos = ((cos_tb[(1024-1)&(tcnt>>5)])>>1)+2200;
+		//reflinpos = ((cos_tb[(1024-1)&(tcnt>>3)])>>3)+2200;
 		//refpos = (reflinpos - startlinpos)*49;
 		
 
