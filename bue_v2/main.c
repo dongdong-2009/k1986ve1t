@@ -1,39 +1,56 @@
 #include "opora.h"
-#include "DMA.h"
 
 #define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
 #define EEPROM_DEL 4
 #define SYS_TICKS 120000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
+#define NE 12
+#define MAXENC (2<<(NE-1))
+
 #define START_ADC_CH(x) ADC->ADC1_CFG = (0x0<<ADC1_CFG_Delay_Go_OFFS) + ADC1_CFG_Cfg_REG_GO + ADC1_CFG_Cfg_REG_ADON + ((x)<<ADC1_CFG_Cfg_REG_CHS_OFFS) + ADC1_CFG_Cfg_REG_CLKS
 #define WAIT_FOR_ADC while(0 == (ADC->ADC1_STATUS & ADC1_STATUS_Flg_REG_EOCIF))
 
-#define DMA_TRANS_NUM 4
-#define DMA_DST_INC 0x02
-#define DMA_DST_SZ	0x02
-#define DMA_SRC_INC	0x03
-#define DMA_SRC_SZ	0x02
+#define MAXQCURR 2000
 
-/* Если управляющие структуры разместить в основной ОЗУ (0x20000000 - 0x20008000), 
- * то ДМА вообще не работает, так что размещать только в дополнительном ОЗУ 
- * (0x20100000-0x20104000). Как оказалось это только пол беды. 
- * ДМА исправно отрабатывает, но если буфер для приёма расположен в основной ОЗУ, 
- * то данных не будет. Таким образом буфера для работы с ДМА нужно располагать 
- * так же в дополнительном ОЗУ.
-*/
-DMAManagementStructureTypeDef	DMACtrStr[32]	__attribute__ ((section(".dma_sec")));
-uint32_t	adc_buffer[8]								__attribute__ ((section(".dma_sec")));
+int32_t refpos = 0;
+int32_t reflinpos = 0;
 
+struct pi_reg_state{
+	int32_t ki;
+	int32_t kp;
+	int32_t a;
+	int32_t y;	
+};
 
-int32_t adc_chan = 0;
-int32_t adc_data[8];
+extern void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
+extern void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle);
+
+extern void reg_init(struct pi_reg_state *s, int32_t ki, int32_t kp);
+extern void reg_update(struct pi_reg_state *s, int32_t e, int32_t fs);
+
+extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
+extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
+extern int32_t get_speed(int32_t enc, int32_t *pos);
+extern int32_t mfilter(int32_t x);
+
+extern void adc_dma_init(void);
+extern void adc_dma_start(void);
+extern void adc_dma_wait(void);
+extern uint32_t adc_dma_buffer[8];
 
 void ClkConfig(void);
 void PortConfig(void);
 void SystemInit(void);
 
 uint32_t system_time = 0;
+uint32_t test_pwm = 500;
+
+int sleep(uint32_t ms)
+{
+	uint32_t t = system_time + ms;
+	while(system_time < t);
+}
 
 //--- Ports configuration ---
 void PortConfig()
@@ -79,14 +96,13 @@ void PortConfig()
 	PORTD->OE |=  (1<<9);
 	PORTD->OE &= ~(1<<8);
 	
-	// debug out PC5 PC6
-	RST_CLK->PER_CLOCK|=1<<23;	 			//clock of PORTC ON	
-	PORTC->FUNC = 0;  						/* mode is port */
-	PORTC->RXTX = 0;	     				/* clear the out */
-	PORTC->OE |= (1<<5)+(1<<6);				/* port is output mode */
-	PORTC->ANALOG |= (1<<5)+(1<<6);			/* port is digital mode */
-	PORTC->PWR |= (3<<(5<<1))+(3<<(6<<1));	/* max power of port */	
-			
+	// debug out PC5
+	RST_CLK->PER_CLOCK|=1<<23;	 	//clock of PORTC ON	
+	PORTC->FUNC = 0;  				/* mode is port */
+	PORTC->RXTX = 0;	     		/* clear the out */
+	PORTC->OE |= (1<<5)+(1<<6);			/* port is output mode */
+	PORTC->ANALOG |= (1<<5)+(1<<6);		/* port is digital mode */
+	PORTC->PWR |= (3<<(5<<1))+(3<<(6<<1));			/* max power of port */	
 }
 
 void ClkConfig(void)
@@ -171,12 +187,15 @@ void TimerConfig(void)
 	TIMER4->CH2_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
 	TIMER4->CH3_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
 
-	TIMER4->IE |= (0x0f << TIMER_IE_CCR_REF_EVENT_IE_OFFS); 	// прерывание по событию передний фронт на REF
-	//TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
+	TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
 
 	TIMER4->CNTRL = TIMER_CNTRL_CNT_EN; 						// start count up
-	
 	//NVIC_EnableIRQ(TIMER4_IRQn); 								// enable in nvic int from tim4
+}
+
+void start_dma(void)
+{
+	NVIC_EnableIRQ(TIMER4_IRQn); 								// enable in nvic int from tim4
 }
 
 void adc_init()
@@ -190,10 +209,8 @@ void adc_init()
 					 ADC1_CFG_Cfg_REG_CHCH;    // переключение каналов выбранных в регистре CHSEL
 					 				
 	ADC->ADC1_CHSEL |= (1<<0) + (1<<3) + (1<<4) + (1<<5); // выбор каналов для авт переключения
-	//ADC->ADC1_CHSEL |= (1<<0) + (1<<5); // выбор каналов для авт переключения
 	ADC->ADC1_STATUS = ADC1_STATUS_ECOIF_IE; // прерывание по окончанию преобразования
 	
-	//NVIC_EnableIRQ(ADC_IRQn);
 }
 
 void dac_init()
@@ -202,27 +219,30 @@ void dac_init()
 	DAC->CFG |= (1<<2); // dac0 on
 }	
 
-void DMAInit()
+void ssi_init()
 {
-
-	RST_CLK->PER_CLOCK |= 1<<5;
-
-	DMA->CTRL_BASE_PTR = (int32_t)DMACtrStr;
-	DMA->CHNL_ENABLE_CLR = 0xFFFFFFFF;	//disable all channel
-	DMA->CHNL_REQ_MASK_SET = 0xFFFFFFFF;//disable all request
-	DMA->CHNL_PRI_ALT_CLR = 0xFFFFFFFF;	//all channel use primary management structure
-	DMA->CHNL_USEBURST_CLR = 1<<30;			//enable dma_sreq[] for ADC
-	DMA->CHNL_REQ_MASK_CLR = 1<<30;			//enable dma_sreq[] for ADC
-	//DMA->CHNL_ENABLE_SET = 1<<30;			//enable channel 30 for ADC
-
-	DMA->CFG=1;							//DMA enable
+	RST_CLK->PER_CLOCK |= 1<<20;	 				//clock of SPI2
+	RST_CLK->SSP_CLOCK = (1<<25) | (2<<8); 			// SSP2_CLK = HCLK/4 = 30MHz
 	
-	// setting DMA control struct in SRAM
-	DMACtrStr[30].SourceEndPointer = (uint32_t)(&(ADC->ADC1_RESULT));			
-	DMACtrStr[30].DestinationEndPointer = (uint32_t)(&adc_buffer[3]);	
-	DMACtrStr[30].Control = (DMA_DST_INC<<30) + (DMA_DST_SZ<<28) + 
-							(DMA_SRC_INC<<26) + (DMA_SRC_SZ<<24) + 
-							((DMA_TRANS_NUM-1)<<4) + 0x01;		
+	SSP2->CR1 = 0;
+	SSP2->CPSR = 10; // предделитель 1MHz 
+	//SSP2->CR0 = (0x02 << SSP_CR0_SCR_Pos) + (0x00 << SSP_CR0_FRF_Pos) | (11 << SSP_CR0_DSS_Pos) | SSP_CR0_SPO;
+	SSP2->CR0 = (0x02 << SSP_CR0_SCR_OFFS) + (0x01 << SSP_CR0_FRF_OFFS) + ((NE-1) << SSP_CR0_DSS_OFFS);
+	SSP2->CR1 = SSP_CR1_SSE; // enable ssp
+}
+
+uint32_t b2g(uint32_t b)
+{
+	return b ^ (b >> 1);
+}
+
+uint32_t g2b(uint32_t g)
+{
+	uint32_t b = 0;
+	for(b = 0; g; (g = g >> 1)){
+		b = b ^ g;
+	}
+	return b;
 }
 
 void SystemInit(void)
@@ -231,54 +251,208 @@ void SystemInit(void)
 	PortConfig();
 	TimerConfig();
 	adc_init();
-	dac_init();	
-	
-	RST_CLK->PER_CLOCK |= 1<<8 | 1<<20 | 1<<31; 
-	SSP1->DMACR=0;
-	SSP2->DMACR=0;
-	SSP3->DMACR=0;
-	RST_CLK->PER_CLOCK &= ~ (1<<8 | 1<<20 | 1<<31);
-	
-	DMAInit();
-	//NVIC_ClearPendingIRQ(DMA_IRQn);
-	//NVIC_EnableIRQ(DMA_IRQn);
+	dac_init();
+	ssi_init();
+	adc_dma_init();
 }
 
-void adc_dma_start(void)
+void timer_wait(void)
 {
-	//int buf = ADC->ADC1_RESULT;	
-	ADC->ADC1_CFG |= ADC1_CFG_Cfg_REG_SAMPLE; 	// start ADC
-	DMA->CHNL_ENABLE_SET = 1<<30;			//enable channel 30 for ADC			
-}
+	while(!(TIMER4->STATUS & 0x02));
+	TIMER4->STATUS = 0;
+}	
 
-void adc_dma_wait(void)
+static inline void debug_signal(int32_t s)
 {
-	while( (DMACtrStr[30].Control & 0x07) );	// waiting for the dma transaction to complete
-	DMACtrStr[30].Control = (DMA_DST_INC<<30) + (DMA_DST_SZ<<28) + 
-							(DMA_SRC_INC<<26) + (DMA_SRC_SZ<<24) + 
-							((DMA_TRANS_NUM-1)<<4) + 0x01;	
-	ADC->ADC1_CFG &= ~ADC1_CFG_Cfg_REG_SAMPLE;  // stop ADC	
-}
+	DAC->DAC1_DATA = s + 2048;
+}	
 
-__attribute__ ((section(".main_sec")))
 int main()
 {
-	int32_t buf;
-	
+	uint32_t code;
+	int32_t i = 0;	
+	int32_t dq[2];	
+	int32_t abc[3];	
+	uint32_t phase = 0;
+	int32_t ia, ib, ic;
+	int32_t dca = 0, dcc = 0;
+	int32_t ed, eq, es;
+	int32_t vd, vq;
+	struct pi_reg_state dreg;
+	struct pi_reg_state qreg;
+	struct pi_reg_state sreg;
+	struct pi_reg_state preg;
+	int32_t fsat = 0;
+	uint32_t tcnt = 0;
+	int32_t speed;
+	int32_t refspeed = 1000;
+	int32_t qref;
+	int32_t position = 0;
+	//int32_t refpos = 0;
+	int32_t linpos = 0;
+	int32_t startlinpos = 0;
+	int32_t startphase = 0;
+
 	SystemInit();
+
+	// init the regulators
+	reg_init(&dreg, 300, 300);
+	reg_init(&qreg, 300, 300);	
+	reg_init(&sreg, 0, 2000);	
+	reg_init(&preg, 0, 3000);
 	
+	refpos = 0;
 	
-	while(1){
+	start_dma();
+
+	// do some init actions	
+	dca = 0;
+	dcc = 0;
+	startlinpos = 0;
+	startphase = 0;
+	for(i=0; i<1024; i++)
+	{	
+		adc_dma_wait();			
 		
-		while(!(TIMER4->STATUS & 0x02));
-		TIMER4->STATUS = 0;
-		
-		PORTC->RXTX |= (1<<6);
-		adc_dma_start();
-		adc_dma_wait();		
-		PORTC->RXTX &= ~(1<<6);
-				
-		//PORTC->RXTX ^= (1<<6);
-		DAC->DAC1_DATA = 0xfff&adc_buffer[0];
+		dca += (0xfff&(adc_dma_buffer[1]));
+		dcc += (0xfff&(adc_dma_buffer[2]));
+		startlinpos += (0xfff&(adc_dma_buffer[3]));
+		startphase += g2b((MAXENC-1) & (SSP2->DR));
 	}
+	
+	dca = dca >> 10;
+	dcc = dcc >> 10;
+	startlinpos = startlinpos >> 10;
+	reflinpos = startlinpos;		
+	startphase = startphase >> 10;
+
+	while(1)
+	{
+		PORTC->RXTX &= ~(1<<5);	
+		adc_dma_wait();			
+		// data is ready now
+		PORTC->RXTX |= (1<<5);	
+		
+		// get the reference analog signal for positoin regulator
+		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
+		reflinpos = ((i+(i>>3))>>3)+700;		// scale 
+		//DAC->DAC1_DATA = reflinpos;
+
+		// get the currents from ADC	
+		ia = (0xfff&(adc_dma_buffer[1])) - dca;
+		ic = (0xfff&(adc_dma_buffer[2])) - dcc;
+		ib = -ia-ic;
+		
+		// get the data from linear positon sensor
+		linpos = (0xfff&(adc_dma_buffer[3]));
+		//DAC->DAC1_DATA = linpos;
+	
+		// get the data from encoder
+		code = g2b((MAXENC-1) & (SSP2->DR));	
+		// get the motor electrical angle (x4 mechanical angle)
+		phase = code & (1024-1);								
+		DAC->DAC1_DATA = code;		
+		
+		tcnt++;
+				
+		if( (0x7 & tcnt) == 0){			
+			// 3kHz
+			speed = get_speed(code, &position);		
+
+			reg_update(&preg, (refpos - position), 0);
+			//update(&preg, (reflinpos - linpos), 0);
+			refspeed = preg.y>>10;
+			
+			//refspeed = -1000;
+			
+			reg_update(&sreg, (refspeed - speed), 0);
+			
+			qref = sreg.y>>10;
+			
+			if(qref > MAXQCURR) qref = MAXQCURR;
+			if(qref < -MAXQCURR) qref = -MAXQCURR;
+			
+			//DAC->DAC1_DATA = (speed>>1) + 2048;
+			//DAC->DAC1_DATA = ((startphase-position)>>1) + 2048;
+			//DAC->DAC1_DATA = qref + 2048;
+			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
+			//DAC->DAC1_DATA = linpos;			
+			
+			refpos = (reflinpos - startlinpos)*49;
+			
+		}
+
+
+/*
+ 		// current regulator debug
+		if( (0x7fff&tcnt) == 0){
+			if(qref == 0) qref = -500; // 100 is abt 1A
+			else qref = 0;
+		}
+
+		ed = qref-ib;
+		reg_update(&dreg, ed , fsat);
+		
+		vd = dreg.y>>10;
+		fsat = 0;
+		if(vd > 511){
+			fsat = 1;
+			vd = 511;
+		}		
+		
+		if(vd < -511){
+			fsat = 1;
+			vd = -511;
+		}				
+			
+		TIMER4->CCR1 = -vd+512;
+		TIMER4->CCR2 = vd+512;
+		//TIMER4->CCR1 = phase;
+		debug_signal(ia<<1);
+		//debug_signal(ed<<2);
+*/
+
+
+		// vector sync motor controller
+		phase = 1023&(phase+1002);    // phase offset for correct rotor position
+		
+		// convert abc currents to dq
+		abc[0] = ia;
+		abc[1] = ib;
+		abc[2] = ic;
+		abc_to_dq(abc, dq, phase);
+		
+		// get the errors
+		ed = 0 - dq[0];
+		eq = qref - dq[1];
+		
+		// regulators do its work
+		reg_update(&dreg, ed , fsat);
+		reg_update(&qreg, eq , fsat);			
+		
+		// pwm modulation
+		dq[0] = dreg.y;
+		dq[1] = qreg.y;
+		
+		fsat = svpwm(abc, dq, phase);
+		//fsat = sinpwm(abc, dq, phase);
+		
+		// set the pwm controller
+		TIMER4->CCR1 = (abc[0])+512;
+		TIMER4->CCR2 = (abc[1])+512;
+		TIMER4->CCR3 = (abc[2])+512;
+		
+		//DAC->DAC1_DATA = ed + 2048;
+		//DAC->DAC1_DATA = phase;
+		//DAC->DAC1_DATA = abc[0] + 2048;
+
+	}
+}
+
+void TIMER4_Handler(void)
+{
+	TIMER4->STATUS = 0;
+	system_time ++;
+	adc_dma_start();
+	SSP2->DR = 0x555; // start encoder request	
 }

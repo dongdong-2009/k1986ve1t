@@ -10,43 +10,43 @@ SRAM2            0x20100000         0x00004000         xrw
 Linker script and memory map
 
 
-.text           0x20100000      0x5b8
+.text           0x20100000      0x5d8
  *(.main_sec)
- .main_sec      0x20100000       0x48 main.o
+ .main_sec      0x20100000       0x5c main.o
                 0x20100000                main
  *(.text)
- .text          0x20100048      0x570 main.o
-                0x20100048                PortConfig
-                0x20100180                ClkConfig
-                0x201001f4                TimerConfig
-                0x201003d8                adc_init
-                0x2010042c                dac_init
-                0x20100458                DMAInit
-                0x201004e8                SystemInit
-                0x2010054c                adc_dma_start
-                0x20100588                adc_dma_wait
+ .text          0x2010005c      0x57c main.o
+                0x2010005c                PortConfig
+                0x20100194                ClkConfig
+                0x20100208                TimerConfig
+                0x201003ec                adc_init
+                0x20100440                dac_init
+                0x2010046c                DMAInit
+                0x20100508                SystemInit
+                0x2010056c                adc_dma_start
+                0x20100594                adc_dma_wait
 
-.glue_7         0x201005b8        0x0
- .glue_7        0x201005b8        0x0 linker stubs
+.glue_7         0x201005d8        0x0
+ .glue_7        0x201005d8        0x0 linker stubs
 
-.glue_7t        0x201005b8        0x0
- .glue_7t       0x201005b8        0x0 linker stubs
+.glue_7t        0x201005d8        0x0
+ .glue_7t       0x201005d8        0x0 linker stubs
 
-.vfp11_veneer   0x201005b8        0x0
- .vfp11_veneer  0x201005b8        0x0 linker stubs
+.vfp11_veneer   0x201005d8        0x0
+ .vfp11_veneer  0x201005d8        0x0 linker stubs
 
-.v4_bx          0x201005b8        0x0
- .v4_bx         0x201005b8        0x0 linker stubs
+.v4_bx          0x201005d8        0x0
+ .v4_bx         0x201005d8        0x0 linker stubs
 
-.iplt           0x201005b8        0x0
- .iplt          0x201005b8        0x0 main.o
+.iplt           0x201005d8        0x0
+ .iplt          0x201005d8        0x0 main.o
 
-.rel.dyn        0x201005b8        0x0
- .rel.iplt      0x201005b8        0x0 main.o
+.rel.dyn        0x201005d8        0x0
+ .rel.iplt      0x201005d8        0x0 main.o
 
-.dma_sec        0x201005b8      0x468
+.dma_sec        0x201005d8      0x448
                 0x20100800                . = ALIGN (0x400)
- *fill*         0x201005b8      0x248 
+ *fill*         0x201005d8      0x228 
  *(.dma_sec)
  .dma_sec       0x20100800      0x220 main.o
                 0x20100800                DMACtrStr

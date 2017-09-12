@@ -313,6 +313,10 @@ void init_pos(void)
 	
 }
 
+void debug_signal(int32_t s)
+{
+	DAC->DAC1_DATA = s + 2048;
+}
 
 __attribute__ ((section(".main_sec")))
 int main()
@@ -347,13 +351,13 @@ int main()
 	dca = get_dcA();
 	dcb = get_dcB();
 	
-	dreg.ki = 100;
-	dreg.kp = 200;
+	dreg.ki = 700;
+	dreg.kp = 500;
 	dreg.a = 0;
 	dreg.y = 0;
 	
-	qreg.ki = 100;
-	qreg.kp = 200;	
+	qreg.ki = 700;
+	qreg.kp = 500;	
 	qreg.a = 0;
 	qreg.y = 0;	
 		
@@ -391,7 +395,7 @@ int main()
 		i = mfilter( 5*(0xfff&(ADC->ADC1_RESULT)) );
 		//i = 5*(0xfff&(ADC->ADC1_RESULT));
 		reflinpos = ((i+(i>>3))>>3)+700;		
-		DAC->DAC1_DATA = (0xfff&(ADC->ADC1_RESULT));
+		//DAC->DAC1_DATA = (0xfff&(ADC->ADC1_RESULT));
 
 		// get the currents from ADC	
 		START_ADC_CH(3);	
@@ -414,7 +418,7 @@ int main()
 
 		// get data from encoder
 		code = g2b((MAXENC-1) & (SSP2->DR));	
-		//DAC->DAC1_DATA = code;
+		DAC->DAC1_DATA = code;
 		tcnt++;
 
 		if( (0x7&tcnt) == 0){			
@@ -425,7 +429,7 @@ int main()
 			//update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>10;
 			
-			//refspeed = -1000;
+			refspeed = 1000;
 			
 			//if(refspeed > 2000) refspeed = 2000;
 			//if(refspeed < -2000) refspeed = -2000;
@@ -447,14 +451,16 @@ int main()
 			//refpos = (reflinpos - startlinpos)*49;
 			
 		}		
-		
+
+
+/*		
 		if( (0xffff&tcnt) == 0){
 			static int32_t dpos = 1300;
 			reflinpos = 2200+dpos;
 			dpos *= -1;			
 			refpos = (reflinpos - startlinpos)*49;			
 		}
-		
+*/		
 		
 		//refpos = -cos_tb[(1024-1)&(tcnt>>4)]<<5;
 		
@@ -465,13 +471,14 @@ int main()
 
 		// get the motor electrical angle x4 mechanical angle
 		phase = code & (1024-1);							
+
 /*
 		// simple sync motor controller
 		dq[0] = 0;
 		dq[1] = 400*1024;
-		dq_to_abc(abc, dq, 1023&(phase+250));	
+		dq_to_abc(abc, dq, 1023&(phase+490));
 		//svpwm(abc, dq, 1023&(phase+250));
-	
+
 		TIMER4->CCR1 = abc[0]+512;
 		TIMER4->CCR2 = abc[1]+512;
 		TIMER4->CCR3 = abc[2]+512;
@@ -481,7 +488,12 @@ int main()
 
 /*
  		// current regulator debug
-		ed = -50-ib;
+		if( (0xffff&tcnt) == 0){
+			if(qref == 0) qref = 300; // 100 is abt 1A
+			else qref = 0;
+		} 		
+ 		
+		ed = qref-ia;
 		update(&dreg, ed , fsat);
 		
 		vd = dreg.y>>10;
@@ -496,16 +508,18 @@ int main()
 			vd = -511;
 		}				
 			
-		TIMER4->CCR2 = vd+512;
+		TIMER4->CCR2 = 0;
+		TIMER4->CCR1 = vd+512;
 		//TIMER4->CCR1 = phase;
-		//DAC->DAC1_DATA = ia + 2048;
-		DAC->DAC1_DATA = (ed<<2) + 2048;
+		debug_signal(ia<<2);
+		//DAC->DAC1_DATA = (ed<<2) + 2048;
 		//DAC->DAC1_DATA = vd + 2048;
 		//DAC->DAC1_DATA = (phase-512) + 2048;
 */
 
+
 		// vector sync motor controller
-		phase = 1023&(phase+250);
+		phase = 1023&(phase+1002);
 		
 		// convert abc currents to dq
 		abc[0] = ia;
