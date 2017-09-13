@@ -1,17 +1,5 @@
 #include "opora.h"
-
-#define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
-#define EEPROM_DEL 4
-#define SYS_TICKS 120000 // 1ms for 120 MHz
-//#define SYS_TICKS 12000000 // 100ms
-
-#define NE 12
-#define MAXENC (2<<(NE-1))
-
-#define START_ADC_CH(x) ADC->ADC1_CFG = (0x0<<ADC1_CFG_Delay_Go_OFFS) + ADC1_CFG_Cfg_REG_GO + ADC1_CFG_Cfg_REG_ADON + ((x)<<ADC1_CFG_Cfg_REG_CHS_OFFS) + ADC1_CFG_Cfg_REG_CLKS
-#define WAIT_FOR_ADC while(0 == (ADC->ADC1_STATUS & ADC1_STATUS_Flg_REG_EOCIF))
-
-#define MAXQCURR 2000
+#include "gdef.h"
 
 int32_t refpos = 0;
 int32_t reflinpos = 0;
@@ -304,10 +292,10 @@ int main()
 	SystemInit();
 
 	// init the regulators
-	reg_init(&dreg, 300, 300);
-	reg_init(&qreg, 300, 300);	
-	reg_init(&sreg, 0, 2000);	
-	reg_init(&preg, 0, 3000);
+	reg_init(&dreg, 200, 200);
+	reg_init(&qreg, 200, 200);	
+	reg_init(&sreg, 0, 1000);	
+	reg_init(&preg, 0, 1000);
 	
 	refpos = 0;
 	
@@ -389,7 +377,7 @@ int main()
 			speed = get_speed(code, &position);		
 
 			reg_update(&preg, (refpos - position), 0);
-			//update(&preg, (reflinpos - linpos), 0);
+			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>10;
 			
 			//refspeed = -1000;
@@ -410,7 +398,7 @@ int main()
 			refpos = (reflinpos - startlinpos)*49;
 			
 		}
-							
+
 
 /*
  		// current regulator debug

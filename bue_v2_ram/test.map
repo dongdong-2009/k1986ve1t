@@ -16,43 +16,43 @@ Linker script and memory map
 
 .text           0x20100000     0x1620
  *(.main_sec)
- .main_sec      0x20100000       0xdc main.o
+ .main_sec      0x20100000      0x41c main.o
                 0x20100000                main
  *(.text)
- .text          0x201000dc      0x524 main.o
-                0x201000dc                sleep
-                0x20100118                PortConfig
-                0x20100250                ClkConfig
-                0x201002c4                TimerConfig
-                0x201004a8                adc_init
-                0x201004fc                dac_init
-                0x20100528                ssi_init
-                0x20100570                b2g
-                0x20100588                g2b
-                0x201005b8                SystemInit
-                0x201005e0                timer_wait
- .text          0x20100600        0x0 cos_tb.o
- .text          0x20100600      0x94c regcur.o
-                0x20100600                mycos
-                0x20100620                mysin
-                0x20100648                reg_init
-                0x20100654                reg_update
-                0x20100684                dot3
-                0x201006a0                abc_to_dq
-                0x20100730                dq_to_abc
-                0x201007b8                cord_atan
-                0x2010095c                sinpwm
-                0x20100b5c                svpwm
-                0x20100ed4                get_speed
-                0x20100f24                mfilter
- .text          0x20100f4c      0x108 adc_dma.o
-                0x20100f4c                adc_dma_init
-                0x20100fe8                adc_dma_start
-                0x20101010                adc_dma_wait
- .text          0x20101054       0x14 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
-                0x20101054                __gnu_thumb1_case_uqi
+ .text          0x2010041c      0x524 main.o
+                0x2010041c                sleep
+                0x20100458                PortConfig
+                0x20100590                ClkConfig
+                0x20100604                TimerConfig
+                0x201007e8                adc_init
+                0x2010083c                dac_init
+                0x20100868                ssi_init
+                0x201008b0                b2g
+                0x201008c8                g2b
+                0x201008f8                SystemInit
+                0x20100920                timer_wait
+ .text          0x20100940        0x0 cos_tb.o
+ .text          0x20100940      0x94c regcur.o
+                0x20100940                mycos
+                0x20100960                mysin
+                0x20100988                reg_init
+                0x20100994                reg_update
+                0x201009c4                dot3
+                0x201009e0                abc_to_dq
+                0x20100a70                dq_to_abc
+                0x20100af8                cord_atan
+                0x20100c9c                sinpwm
+                0x20100e9c                svpwm
+                0x20101214                get_speed
+                0x20101264                mfilter
+ .text          0x2010128c      0x108 adc_dma.o
+                0x2010128c                adc_dma_init
+                0x20101328                adc_dma_start
+                0x20101350                adc_dma_wait
+ .text          0x20101394       0x14 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_thumb1_case_uqi.o)
+                0x20101394                __gnu_thumb1_case_uqi
                 0x20101400                . = ALIGN (0x400)
- *fill*         0x20101068      0x398 
+ *fill*         0x201013a8       0x58 
  *(.dma_sec)
  .dma_sec       0x20101400      0x220 adc_dma.o
                 0x20101400                dma_ctr_str
@@ -120,17 +120,17 @@ LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv
 END GROUP
 OUTPUT(bue.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x14e7
- .debug_info    0x00000000      0x87e main.o
- .debug_info    0x0000087e       0x97 cos_tb.o
- .debug_info    0x00000915      0x841 regcur.o
- .debug_info    0x00001156      0x391 adc_dma.o
+.debug_info     0x00000000     0x1505
+ .debug_info    0x00000000      0x89c main.o
+ .debug_info    0x0000089c       0x97 cos_tb.o
+ .debug_info    0x00000933      0x841 regcur.o
+ .debug_info    0x00001174      0x391 adc_dma.o
 
-.debug_abbrev   0x00000000      0x52b
- .debug_abbrev  0x00000000      0x1c3 main.o
- .debug_abbrev  0x000001c3       0x75 cos_tb.o
- .debug_abbrev  0x00000238      0x22f regcur.o
- .debug_abbrev  0x00000467       0xc4 adc_dma.o
+.debug_abbrev   0x00000000      0x506
+ .debug_abbrev  0x00000000      0x19e main.o
+ .debug_abbrev  0x0000019e       0x75 cos_tb.o
+ .debug_abbrev  0x00000213      0x22f regcur.o
+ .debug_abbrev  0x00000442       0xc4 adc_dma.o
 
 .debug_aranges  0x00000000       0x80
  .debug_aranges
@@ -146,11 +146,11 @@ OUTPUT(bue.elf elf32-littlearm)
  .debug_ranges  0x00000000       0x18 main.o
  .debug_ranges  0x00000018      0x220 regcur.o
 
-.debug_line     0x00000000      0x64d
- .debug_line    0x00000000      0x1e5 main.o
- .debug_line    0x000001e5       0x4a cos_tb.o
- .debug_line    0x0000022f      0x367 regcur.o
- .debug_line    0x00000596       0xb7 adc_dma.o
+.debug_line     0x00000000      0x6a5
+ .debug_line    0x00000000      0x23d main.o
+ .debug_line    0x0000023d       0x4a cos_tb.o
+ .debug_line    0x00000287      0x367 regcur.o
+ .debug_line    0x000005ee       0xb7 adc_dma.o
 
 .debug_str      0x00000000      0x736
  .debug_str     0x00000000      0x493 main.o

@@ -1,20 +1,6 @@
-#include <opora.h>
-
-#define MY_PI 512
-#define USE_SVPWM
-#define abs(a) ((a>0)?a:-a)
+#include "gdef.h"
 
 extern const int32_t cos_tb[1024];
-
-//#define Ki 1
-//#define Kp 0
-
-struct pi_reg_state{
-	int32_t ki;
-	int32_t kp;
-	int32_t a;
-	int32_t y;	
-};
 
 static inline int32_t mycos(int32_t a)
 {
@@ -26,7 +12,7 @@ static inline int32_t mysin(int32_t a)
 	return cos_tb[1023&(a+3*MY_PI/2)];
 }
 
-void reg_init(struct pi_reg_state *s, uint32_t ki, uint32_t kp)
+void reg_init(pi_reg_state *s, uint32_t ki, uint32_t kp)
 {
 	s->ki = ki;
 	s->kp = kp;
@@ -34,7 +20,7 @@ void reg_init(struct pi_reg_state *s, uint32_t ki, uint32_t kp)
 	s->y = 0;
 }
 
-void reg_update(struct pi_reg_state *s, int32_t e, int32_t fs)
+void reg_update(pi_reg_state *s, int32_t e, int32_t fs)
 {
 	int32_t a = s->a;
 	int32_t d = s->ki*e;
