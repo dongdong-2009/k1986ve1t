@@ -132,6 +132,101 @@ int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	
 	return fs;	
 }
+/*
+// sectors proc array
+void fs0(int32_t *abc, int32_t mag, int32_t phi)
+{
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = r1+r2;
+	abc[1] = -r1+r2;
+	abc[2] = -r1-r2;			
+}
+	
+void fs1(int32_t *abc, int32_t mag, int32_t phi)
+{
+	phi -= MY_PI/3;
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = r1-r2;
+	abc[1] = r1+r2;
+	abc[2] = -r1-r2;		
+}
+	
+void fs2(int32_t *abc, int32_t mag, int32_t phi)
+{
+	phi -= 2*MY_PI/3;
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = -r1-r2;
+	abc[1] = r1+r2;
+	abc[2] = -r1+r2;
+}
+	
+void fs3(int32_t *abc, int32_t mag, int32_t phi)
+{
+	phi -= 3*MY_PI/3;
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = -r1-r2;
+	abc[1] = r1-r2;
+	abc[2] = r1+r2;		
+}
+	
+void fs4(int32_t *abc, int32_t mag, int32_t phi)
+{
+	phi -= 4*MY_PI/3;
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = -r1+r2;
+	abc[1] = -r1-r2;
+	abc[2] = r1+r2;	
+}
+	
+void fs5(int32_t *abc, int32_t mag, int32_t phi)
+{
+	phi -= 5*MY_PI/3;
+	int32_t r1 = mag*mysin(7*MY_PI/3-phi) >> 10;
+	int32_t r2 = mag*mysin(phi) >> 10;
+	
+	abc[0] = +r1+r2;
+	abc[1] = -r1-r2;
+	abc[2] = r1-r2;
+}
+
+void (*const afs[6])(int32_t *abc, int32_t mag, int32_t phi) = {fs0, fs1, fs2, fs3, fs4, fs5};
+// end of proc array
+
+int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
+{
+	int32_t fs = 0;
+	int32_t mag;
+	int32_t ang;
+	cord_atan(dq, &ang, &mag);
+	
+	mag = mag >> 10;
+	int32_t phi = 1023&(phase + ang);
+	
+	if(mag > 500) {
+		mag = 500;
+		fs = 1;
+	}
+	else fs = 0;
+			
+	int32_t ns = (phi*6) >> 10;	 // get the sector number
+	int32_t r1;
+	int32_t r2;
+	
+	(afs[ns])(abc, mag, phi);
+	
+	return fs;
+}
+*/
 
 int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 {

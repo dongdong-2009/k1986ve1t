@@ -10,7 +10,7 @@ FLASH            0x00000000         0x00020000         xr
 Linker script and memory map
 
 
-.text           0x00000000     0x23ac
+.text           0x00000000     0x22e0
                 0x00000000                . = ALIGN (0x4)
  *(.interrupt_vector)
  .interrupt_vector
@@ -18,11 +18,9 @@ Linker script and memory map
                 0x00000000                table_interrupt_vector
  *(.text)
  .text          0x000000c0      0x478 main.o
-                0x000000c0                sleep
-                0x000000ec                b2g
-                0x00000104                g2b
-                0x00000134                main
-                0x00000504                TIMER4_Handler
+                0x00000218                sleep
+                0x00000244                main
+                0x0000050c                TIMER4_Handler
  .text          0x00000538        0x0 cos_tb.o
  .text          0x00000538       0x68 startup.o
                 0x00000538                Reset_Handler
@@ -72,46 +70,46 @@ Linker script and memory map
                 0x00000a34                svpwm
                 0x00000d30                get_speed
                 0x00000d7c                mfilter
- .text          0x00000da4      0x5b0 system.o
+ .text          0x00000da4      0x3e4 system.o
                 0x00000ddc                PortConfig
                 0x00000f14                ClkConfig
                 0x00000f88                TimerConfig
-                0x00001170                adc_init
-                0x000011c4                dma_init
-                0x00001244                adc_dma_init
-                0x00001258                adc_dma_start
-                0x00001280                adc_dma_wait
-                0x000012bc                dac_init
-                0x000012e8                ssi_init
-                0x00001330                SystemInit
+                0x00001170                SystemInit
+ .text          0x00001188       0x18 encoder.o
+                0x00001188                b2g
+                0x00001190                g2b
+ .text          0x000011a0       0xe8 adc_dma.o
+                0x000011a0                adc_init
+                0x000011f4                dma_init
+                0x00001274                adc_dma_init
  *(.text*)
  *(.rodata)
- .rodata        0x00001354     0x1000 cos_tb.o
-                0x00001354                cos_tb
- .rodata        0x00002354       0x58 dsp.o
+ .rodata        0x00001288     0x1000 cos_tb.o
+                0x00001288                cos_tb
+ .rodata        0x00002288       0x58 dsp.o
  *(.rodata*)
-                0x000023ac                . = ALIGN (0x4)
-                0x000023ac                _data_flash = .
+                0x000022e0                . = ALIGN (0x4)
+                0x000022e0                _data_flash = .
 
-.glue_7         0x000023ac        0x0
- .glue_7        0x000023ac        0x0 linker stubs
+.glue_7         0x000022e0        0x0
+ .glue_7        0x000022e0        0x0 linker stubs
 
-.glue_7t        0x000023ac        0x0
- .glue_7t       0x000023ac        0x0 linker stubs
+.glue_7t        0x000022e0        0x0
+ .glue_7t       0x000022e0        0x0 linker stubs
 
-.vfp11_veneer   0x000023ac        0x0
- .vfp11_veneer  0x000023ac        0x0 linker stubs
+.vfp11_veneer   0x000022e0        0x0
+ .vfp11_veneer  0x000022e0        0x0 linker stubs
 
-.v4_bx          0x000023ac        0x0
- .v4_bx         0x000023ac        0x0 linker stubs
+.v4_bx          0x000022e0        0x0
+ .v4_bx         0x000022e0        0x0 linker stubs
 
-.iplt           0x000023ac        0x0
- .iplt          0x000023ac        0x0 main.o
+.iplt           0x000022e0        0x0
+ .iplt          0x000022e0        0x0 main.o
 
-.rel.dyn        0x000023ac        0x0
- .rel.iplt      0x000023ac        0x0 main.o
+.rel.dyn        0x000022e0        0x0
+ .rel.iplt      0x000022e0        0x0 main.o
 
-.data           0x20000000        0x0 load address 0x000023ac
+.data           0x20000000        0x0 load address 0x000022e0
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_begin = .
  *(.data)
@@ -120,44 +118,52 @@ Linker script and memory map
  .data          0x20000000        0x0 startup.o
  .data          0x20000000        0x0 dsp.o
  .data          0x20000000        0x0 system.o
+ .data          0x20000000        0x0 encoder.o
+ .data          0x20000000        0x0 adc_dma.o
  *(.data*)
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_end = .
 
-.igot.plt       0x20000000        0x0 load address 0x000023ac
+.igot.plt       0x20000000        0x0 load address 0x000022e0
  .igot.plt      0x20000000        0x0 main.o
 
-.bss            0x20000000       0x9c load address 0x000023ac
+.bss            0x20000000       0xdc load address 0x000022e0
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _bss_begin = .
                 0x20000000                __bss_start__ = _bss_begin
  *(.bss)
- .bss           0x20000000        0xc main.o
+ .bss           0x20000000       0x4c main.o
                 0x20000000                refpos
                 0x20000004                reflinpos
-                0x20000008                system_time
- .bss           0x2000000c        0x0 cos_tb.o
- .bss           0x2000000c        0x0 startup.o
- .bss           0x2000000c       0x90 dsp.o
- .bss           0x2000009c        0x0 system.o
+                0x20000008                dreg
+                0x20000018                qreg
+                0x20000028                sreg
+                0x20000038                preg
+                0x20000048                system_time
+ .bss           0x2000004c        0x0 cos_tb.o
+ .bss           0x2000004c        0x0 startup.o
+ .bss           0x2000004c       0x90 dsp.o
+ .bss           0x200000dc        0x0 system.o
+ .bss           0x200000dc        0x0 encoder.o
+ .bss           0x200000dc        0x0 adc_dma.o
  *(.bss*)
  *(COMMON)
-                0x2000009c                . = ALIGN (0x4)
-                0x2000009c                _bss_end = .
-                0x2000009c                __bss_end__ = _bss_end
+                0x200000dc                . = ALIGN (0x4)
+                0x200000dc                _bss_end = .
+                0x200000dc                __bss_end__ = _bss_end
                 0x00000400                _stack_size = 0x400
                 0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
                 0x20007c00                _stack_begin = (_stack_end - _stack_size)
                 0x20007c00                . = _stack_begin
 
-._stack         0x2000009c      0x400 load address 0x00002448
-                0x2000049c                . = (. + _stack_size)
- *fill*         0x2000009c      0x400 
+._stack         0x200000dc      0x400 load address 0x000023bc
+                0x200004dc                . = (. + _stack_size)
+ *fill*         0x200000dc      0x400 
 
 .dma_sec        0x20100000      0x220
                 0x20100000                . = ALIGN (0x400)
  *(.dma_sec)
- .dma_sec       0x20100000      0x220 system.o
+ .dma_sec       0x20100000      0x220 adc_dma.o
                 0x20100000                dma_ctr_str
                 0x20100200                adc_dma_buffer
 LOAD main.o
@@ -165,26 +171,32 @@ LOAD cos_tb.o
 LOAD startup.o
 LOAD dsp.o
 LOAD system.o
+LOAD encoder.o
+LOAD adc_dma.o
 START GROUP
 LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a
 END GROUP
 OUTPUT(bue.elf elf32-littlearm)
 
-.debug_info     0x00000000     0x195c
- .debug_info    0x00000000      0x64f main.o
- .debug_info    0x0000064f       0x97 cos_tb.o
- .debug_info    0x000006e6       0xf1 startup.o
- .debug_info    0x000007d7      0x7e0 dsp.o
- .debug_info    0x00000fb7      0x9a5 system.o
+.debug_info     0x00000000     0x1d57
+ .debug_info    0x00000000      0x94e main.o
+ .debug_info    0x0000094e       0x97 cos_tb.o
+ .debug_info    0x000009e5       0xf1 startup.o
+ .debug_info    0x00000ad6      0x7e0 dsp.o
+ .debug_info    0x000012b6      0x63b system.o
+ .debug_info    0x000018f1       0xce encoder.o
+ .debug_info    0x000019bf      0x398 adc_dma.o
 
-.debug_abbrev   0x00000000      0x5fe
- .debug_abbrev  0x00000000      0x152 main.o
- .debug_abbrev  0x00000152       0x75 cos_tb.o
- .debug_abbrev  0x000001c7       0xab startup.o
- .debug_abbrev  0x00000272      0x22b dsp.o
- .debug_abbrev  0x0000049d      0x161 system.o
+.debug_abbrev   0x00000000      0x7a0
+ .debug_abbrev  0x00000000      0x199 main.o
+ .debug_abbrev  0x00000199       0x75 cos_tb.o
+ .debug_abbrev  0x0000020e       0xab startup.o
+ .debug_abbrev  0x000002b9      0x22b dsp.o
+ .debug_abbrev  0x000004e4      0x150 system.o
+ .debug_abbrev  0x00000634       0x89 encoder.o
+ .debug_abbrev  0x000006bd       0xe3 adc_dma.o
 
-.debug_aranges  0x00000000       0x98
+.debug_aranges  0x00000000       0xd8
  .debug_aranges
                 0x00000000       0x20 main.o
  .debug_aranges
@@ -195,25 +207,35 @@ OUTPUT(bue.elf elf32-littlearm)
                 0x00000058       0x20 dsp.o
  .debug_aranges
                 0x00000078       0x20 system.o
+ .debug_aranges
+                0x00000098       0x20 encoder.o
+ .debug_aranges
+                0x000000b8       0x20 adc_dma.o
 
-.debug_line     0x00000000      0x6e0
- .debug_line    0x00000000      0x158 main.o
- .debug_line    0x00000158       0x4a cos_tb.o
- .debug_line    0x000001a2       0x50 startup.o
- .debug_line    0x000001f2      0x338 dsp.o
- .debug_line    0x0000052a      0x1b6 system.o
+.debug_line     0x00000000      0x7fb
+ .debug_line    0x00000000      0x1e3 main.o
+ .debug_line    0x000001e3       0x4a cos_tb.o
+ .debug_line    0x0000022d       0x50 startup.o
+ .debug_line    0x0000027d      0x338 dsp.o
+ .debug_line    0x000005b5      0x124 system.o
+ .debug_line    0x000006d9       0x68 encoder.o
+ .debug_line    0x00000741       0xba adc_dma.o
 
-.debug_str      0x00000000      0x9f6
- .debug_str     0x00000000      0x2f0 main.o
-                                0x331 (size before relaxing)
- .debug_str     0x000002f0       0x10 cos_tb.o
+.debug_str      0x00000000      0xa33
+ .debug_str     0x00000000      0x5d4 main.o
+                                0x623 (size before relaxing)
+ .debug_str     0x000005d4       0x10 cos_tb.o
                                 0x10a (size before relaxing)
- .debug_str     0x00000300       0xa5 startup.o
+ .debug_str     0x000005e4       0xa5 startup.o
                                 0x146 (size before relaxing)
- .debug_str     0x000003a5      0x102 dsp.o
+ .debug_str     0x00000689      0x102 dsp.o
                                 0x1ab (size before relaxing)
- .debug_str     0x000004a7      0x54f system.o
-                                0x7ed (size before relaxing)
+ .debug_str     0x0000078b      0x27e system.o
+                                0x562 (size before relaxing)
+ .debug_str     0x00000a09        0xa encoder.o
+                                0x105 (size before relaxing)
+ .debug_str     0x00000a13       0x20 adc_dma.o
+                                0x3de (size before relaxing)
 
 .comment        0x00000000       0x6e
  .comment       0x00000000       0x6e main.o
@@ -222,6 +244,8 @@ OUTPUT(bue.elf elf32-littlearm)
  .comment       0x0000006e       0x6f startup.o
  .comment       0x0000006e       0x6f dsp.o
  .comment       0x0000006e       0x6f system.o
+ .comment       0x0000006e       0x6f encoder.o
+ .comment       0x0000006e       0x6f adc_dma.o
 
 .ARM.attributes
                 0x00000000       0x31
@@ -235,15 +259,22 @@ OUTPUT(bue.elf elf32-littlearm)
                 0x00000093       0x31 dsp.o
  .ARM.attributes
                 0x000000c4       0x31 system.o
+ .ARM.attributes
+                0x000000f5       0x31 encoder.o
+ .ARM.attributes
+                0x00000126       0x31 adc_dma.o
 
-.debug_frame    0x00000000      0x37c
- .debug_frame   0x00000000       0xac main.o
- .debug_frame   0x000000ac       0x4c startup.o
- .debug_frame   0x000000f8      0x120 dsp.o
- .debug_frame   0x00000218      0x164 system.o
+.debug_frame    0x00000000      0x3d4
+ .debug_frame   0x00000000      0x134 main.o
+ .debug_frame   0x00000134       0x4c startup.o
+ .debug_frame   0x00000180      0x120 dsp.o
+ .debug_frame   0x000002a0       0xa0 system.o
+ .debug_frame   0x00000340       0x30 encoder.o
+ .debug_frame   0x00000370       0x64 adc_dma.o
 
-.debug_loc      0x00000000     0x1bc7
+.debug_loc      0x00000000     0x1c25
  .debug_loc     0x00000000     0x1bc7 dsp.o
+ .debug_loc     0x00001bc7       0x5e encoder.o
 
 .debug_ranges   0x00000000      0x1b8
  .debug_ranges  0x00000000      0x1b8 dsp.o

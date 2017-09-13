@@ -19,7 +19,7 @@ CPFLAGS = -Obinary
 all: bue.elf
 
 regcur.o: regcur.c
-	$(CC) $(CFLAGS) -O3 -o regcur.o regcur.c
+	$(CC) $(CFLAGS) -O0 -o regcur.o regcur.c
 
 adc_dma.o: adc_dma.c
 	$(CC) $(CFLAGS) -O0 -o adc_dma.o adc_dma.c

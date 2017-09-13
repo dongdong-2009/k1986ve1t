@@ -1,13 +1,19 @@
 #include "gdef.h"
 #include "dsp.h"
+#include "adc_dma.h"
+#include "encoder.h"
+#include "debug.h"
+#include "pwm.h"
 
 int32_t refpos = 0;
 int32_t reflinpos = 0;
 
-extern void adc_dma_start(void);
-extern void adc_dma_wait(void);
+pi_reg_state dreg;
+pi_reg_state qreg;
+pi_reg_state sreg;
+pi_reg_state preg;
+
 extern void SystemInit(void);
-extern uint32_t adc_dma_buffer[8];
 
 uint32_t system_time = 0;
 
@@ -16,25 +22,6 @@ int sleep(uint32_t ms)
 	uint32_t t = system_time + ms;
 	while(system_time < t);
 }
-
-uint32_t b2g(uint32_t b)
-{
-	return b ^ (b >> 1);
-}
-
-uint32_t g2b(uint32_t g)
-{
-	uint32_t b = 0;
-	for(b = 0; g; (g = g >> 1)){
-		b = b ^ g;
-	}
-	return b;
-}
-
-static inline void debug_signal(int32_t s)
-{
-	DAC->DAC1_DATA = s + 2048;
-}	
 
 int main()
 {
@@ -47,10 +34,6 @@ int main()
 	int32_t dca = 0, dcc = 0;
 	int32_t ed, eq, es;
 	int32_t vd, vq;
-	pi_reg_state dreg;
-	pi_reg_state qreg;
-	pi_reg_state sreg;
-	pi_reg_state preg;
 	int32_t fsat = 0;
 	uint32_t tcnt = 0;
 	int32_t speed;
@@ -63,6 +46,9 @@ int main()
 	int32_t startphase = 0;
 
 	SystemInit();
+	adc_dma_init();
+	encoder_init();	
+	debug_init();
 	
 	// init the regulators
 	reg_init(&dreg, KI_DQCUR, KP_DQCUR);
@@ -84,7 +70,7 @@ int main()
 		dca += (0xfff&(adc_dma_buffer[1]));
 		dcc += (0xfff&(adc_dma_buffer[2]));
 		startlinpos += (0xfff&(adc_dma_buffer[3]));
-		startphase += g2b((MAXENC-1) & (SSP2->DR));
+		startphase += encoder_read();
 	}
 	
 	dca = dca >> 10;
@@ -116,7 +102,7 @@ int main()
 		//DAC->DAC1_DATA = linpos;
 	
 		// get the data from encoder
-		code = g2b((MAXENC-1) & (SSP2->DR));	
+		code = encoder_read();
 		// get the motor electrical angle (x4 mechanical angle)
 		phase = code & (1024-1);								
 		DAC->DAC1_DATA = code;		
@@ -128,7 +114,7 @@ int main()
 			speed = get_speed(code, &position);		
 
 			reg_update(&preg, (refpos - position), 0);
-			//update(&preg, (reflinpos - linpos), 0);
+			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>10;
 			
 			//refspeed = -1000;
@@ -204,9 +190,7 @@ int main()
 		//fsat = sinpwm(abc, dq, phase);
 		
 		// set the pwm controller
-		TIMER4->CCR1 = (abc[0])+512;
-		TIMER4->CCR2 = (abc[1])+512;
-		TIMER4->CCR3 = (abc[2])+512;
+		pwm_set(abc);
 		
 		//DAC->DAC1_DATA = ed + 2048;
 		//DAC->DAC1_DATA = phase;
@@ -220,5 +204,5 @@ void TIMER4_Handler(void)
 	TIMER4->STATUS = 0;
 	system_time ++;
 	adc_dma_start();
-	SSP2->DR = 0x555; // start encoder request	
+	encoder_start();
 }

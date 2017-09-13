@@ -8,14 +8,15 @@
 #define SYS_TICKS 120000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
-#define KI_DQCUR 100
-#define KP_DQCUR 100
+#define KI_DQCUR 200
+#define KP_DQCUR 200
 #define KP_SPD 1000
 #define KP_POS 1000
 
+#define MAXQCURR 1000
+
 #define NE 12
 #define MAXENC (2<<(NE-1))
-#define MAXQCURR 200
 
 #define DMA_TRANS_NUM 4
 #define DMA_DST_INC 0x02

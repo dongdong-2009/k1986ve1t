@@ -300,7 +300,7 @@ int main()
 	refpos = 0;
 	
 	// wait for system to be steady
-	sleep(1000);
+//	sleep(1000);
 
 /*	while(1){
 		
@@ -345,11 +345,12 @@ int main()
 	{
 		timer_wait();		
 		
-		adc_dma_start();
+		PORTC->RXTX &= ~(1<<6);
+		adc_dma_start();	
 		SSP2->DR = 0x555; // start encoder request
 		adc_dma_wait();			
-		// data is ready now
-		
+		// data is ready now		
+		PORTC->RXTX |= (1<<6);
 		// get the reference analog signal for positoin regulator
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
 		reflinpos = ((i+(i>>3))>>3)+700;		// scale 

@@ -18,6 +18,12 @@ CPFLAGS = -Obinary
 
 all: bue.bin
 
+encoder.o: encoder.c
+	$(CC) $(CFLAGS) -O3 -o encoder.o encoder.c
+
+adc_dma.o: adc_dma.c
+	$(CC) $(CFLAGS) -O0 -o adc_dma.o adc_dma.c
+
 system.o: system.c
 	$(CC) $(CFLAGS) -O0 -o system.o system.c
 
@@ -33,8 +39,8 @@ cos_tb.o: cos_tb.c
 main.o: main.c
 	$(CC) $(CFLAGS) -O0 -o main.o main.c
 
-bue.elf: main.o cos_tb.o startup.o dsp.o system.o gdef.h
-	$(LD) $(LFLAGS) -Map test.map -o bue.elf main.o cos_tb.o startup.o dsp.o system.o $(LIBS)
+bue.elf: main.o cos_tb.o startup.o dsp.o system.o encoder.o adc_dma.o gdef.h 
+	$(LD) $(LFLAGS) -Map test.map -o bue.elf main.o cos_tb.o startup.o dsp.o system.o encoder.o adc_dma.o $(LIBS)
 
 bue.bin: bue.elf
 	$(CP) $(CPFLAGS) bue.elf bue.bin
