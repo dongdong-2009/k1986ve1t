@@ -50,10 +50,14 @@ void reg_update(struct pi_reg_state *s, int32_t e, int32_t fs)
 	//s->a = s->y - 782*e;
 }
 
+extern int32_t dot3(int32_t *a, int32_t *b);
+
+/*
 int32_t dot3(int32_t *a, int32_t *b)
 {
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
+*/
 
 void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle)
 {
@@ -132,6 +136,7 @@ int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	
 	return fs;	
 }
+
 /*
 // sectors proc array
 void fs0(int32_t *abc, int32_t mag, int32_t phi)
@@ -332,7 +337,8 @@ int32_t get_speed(int32_t enc, int32_t *pos)
 	return ((denc>>1)*rate)>>12;
 } 
 
-int32_t mfilter(int32_t x)
+
+int32_t c_mfilter(int32_t x)
 {
 	static int32_t j = 0;
 	static int32_t a = 0;
@@ -344,3 +350,4 @@ int32_t mfilter(int32_t x)
 	
 	return a>>5;
 }
+

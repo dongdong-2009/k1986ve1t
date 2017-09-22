@@ -3,6 +3,9 @@
 
 int32_t refpos = 0;
 int32_t reflinpos = 0;
+int32_t startlinpos = 0;
+int32_t startphase = 0;
+int32_t linpos = 0;
 
 struct pi_reg_state{
 	int32_t ki;
@@ -262,11 +265,14 @@ static inline void debug_signal(int32_t s)
 	DAC->DAC1_DATA = s + 2048;
 }	
 
+extern int32_t c_mfilter(int32_t x);
+extern void asm_dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
+
 __attribute__ ((section(".main_sec")))
 int main()
 {
 	uint32_t code;
-	int32_t i = 0;	
+	int32_t i = 0, j=0;	
 	int32_t dq[2];	
 	int32_t abc[3];	
 	uint32_t phase = 0;
@@ -285,9 +291,6 @@ int main()
 	int32_t qref;
 	int32_t position = 0;
 	//int32_t refpos = 0;
-	int32_t linpos = 0;
-	int32_t startlinpos = 0;
-	int32_t startphase = 0;
 
 	SystemInit();
 
@@ -302,19 +305,31 @@ int main()
 	// wait for system to be steady
 //	sleep(1000);
 
-/*	while(1){
+	while(1){
 		
 		timer_wait();
 		
-		PORTC->RXTX |= (1<<6);
+		//PORTC->RXTX |= (1<<6);
 		adc_dma_start();
 		adc_dma_wait();		
-		PORTC->RXTX &= ~(1<<6);
+		//PORTC->RXTX &= ~(1<<6);
 				
 		//PORTC->RXTX ^= (1<<6);
 		DAC->DAC1_DATA = 0xfff&adc_dma_buffer[3];
+		
+		PORTC->RXTX |= (1<<6);
+		c_mfilter(5);
+		PORTC->RXTX &= ~(1<<6);
+		
+		dq[0] = 280<<10;
+		dq[1] = 120<<10;
+		asm_dq_to_abc(abc, dq, 400);
+		dq[0] = 280<<10;
+		dq[1] = 120<<10;		
+		dq_to_abc(abc, dq, 400);
+		i = 0;
 	}
-*/	
+	
 
 	// do some init actions	
 	dca = 0;
@@ -333,6 +348,8 @@ int main()
 		dcc += (0xfff&(adc_dma_buffer[2]));
 		startlinpos += (0xfff&(adc_dma_buffer[3]));
 		startphase += g2b((MAXENC-1) & (SSP2->DR));
+		
+		mfilter( 5*(0xfff&(adc_dma_buffer[0])) );		
 	}
 	
 	dca = dca >> 10;
@@ -345,6 +362,8 @@ int main()
 	{
 		timer_wait();		
 		
+		//i = mfilter(5);
+	
 		PORTC->RXTX &= ~(1<<6);
 		adc_dma_start();	
 		SSP2->DR = 0x555; // start encoder request
@@ -353,6 +372,7 @@ int main()
 		PORTC->RXTX |= (1<<6);
 		// get the reference analog signal for positoin regulator
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
+		//i = 5*(0xfff&(adc_dma_buffer[0]));
 		reflinpos = ((i+(i>>3))>>3)+700;		// scale 
 		//DAC->DAC1_DATA = reflinpos;
 

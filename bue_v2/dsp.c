@@ -11,7 +11,13 @@ static inline int32_t mysin(int32_t a)
 {
 	return cos_tb[1023&(a+3*MY_PI/2)];
 }
-
+/*
+ * Процедура инициализации ПИ регулятора
+ * на входе:
+ * s - указатель на структуру регулятора
+ * ki - коэффициент интегрирующего звена
+ * kp - коэффициент пропорционального звена
+ */
 void reg_init(pi_reg_state *s, uint32_t ki, uint32_t kp)
 {
 	s->ki = ki;
@@ -20,6 +26,14 @@ void reg_init(pi_reg_state *s, uint32_t ki, uint32_t kp)
 	s->y = 0;
 }
 
+/*
+ * Процедура обновления состояния ПИ регулятора
+ * на входе:
+ * s - указатель на структуру регулятора
+ * e - ошибка регулирования
+ * fs - флаг заморозки аккумулятора
+ * если fs=1 увеличение аккумулятора запрещено
+ */
 void reg_update(pi_reg_state *s, int32_t e, int32_t fs)
 {
 	int32_t a = s->a;
@@ -35,12 +49,19 @@ void reg_update(pi_reg_state *s, int32_t e, int32_t fs)
 	//s->y = 1024*e + s->a;
 	//s->a = s->y - 782*e;
 }
-
+/*
+ * скалярное произведение 3D векторов a и b
+ */
 static inline int32_t dot3(int32_t *a, int32_t *b)
 {
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
+/*
+ * преобразование вектора abc из система координат статора 
+ * в систему координат ротора dq
+ * angle - угол поворота ротора
+ */
 void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle)
 {
 	int32_t ct[3] = {	cos_tb[angle], 
@@ -54,6 +75,11 @@ void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle)
 	dq[1] = (-dot3(abc, st)) >> 10;
 }
 
+/*
+ * преобразование вектора dq из система координат ротора 
+ * в систему координат статора abc
+ * angle - угол поворота ротора
+ */
 void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle)
 {
 	abc[0] = (dq[0]*cos_tb[angle] 				- dq[1]*cos_tb[1023&(angle+3*512/2)]) >> 20;
@@ -61,7 +87,10 @@ void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle)
 	abc[2] = (dq[0]*cos_tb[1023&(angle+2*512/3)] - dq[1]*cos_tb[1023&(angle+2*512/3+3*512/2)]) >> 20;
 }
 
-// calc magnitude and angle of 2Dvector using CORDIC algorithm
+/*
+ * рассчет модуля mag и угла ang 2D вектора v
+ * используется CORDIC алгоритм
+ */
 void cord_atan(int32_t *v, int32_t *ang, int32_t *mag)
 {
 	const int32_t AngTable[] = {128, 76, 40, 20, 10, 5, 3, 1};
@@ -100,6 +129,15 @@ void cord_atan(int32_t *v, int32_t *ang, int32_t *mag)
 	*mag = (kc[ns-1]*x) >> 10;
 }
 
+/*
+ * Подпрограма векторной ШИМ модуляции
+ * на вход:
+ * dq - напряжение в системе координат ротора
+ * phase - угол поворота ротора
+ * на выходе:
+ * abc - напряжение в сиситеме координат статора
+ * возвращает флаг насыщения выхода
+ */
 int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
 {
 	int32_t fs = 0;
@@ -119,7 +157,15 @@ int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	return fs;	
 }
 
-
+/*
+ * Подпрограма векторной ШИМ модуляции
+ * на вход:
+ * dq - напряжение в системе координат ротора
+ * phase - угол поворота ротора
+ * на выходе:
+ * abc - напряжение в сиситеме координат статора
+ * возвращает флаг насыщения выхода
+ */
 int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 {
 	int32_t fs = 0;
@@ -204,6 +250,12 @@ int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	return fs;
 }
 
+/*
+ * Подпрограмма для расчета скорости и абсолютной фазы ротора
+ * enc - угол с энкодера
+ * pos - указатель на переменную абсолютная фаза ротора
+ * возвращает скорость
+ */
 int32_t get_speed(int32_t enc, int32_t *pos)
 {
 	int32_t denc;
@@ -224,6 +276,11 @@ int32_t get_speed(int32_t enc, int32_t *pos)
 	return ((denc>>1)*rate)>>12;
 } 
 
+/*
+ * 32 точечный усредняющий фильтр
+ * x - входной отсчет
+ * y - выходной отсчет
+ */
 int32_t mfilter(int32_t x)
 {
 	static int32_t j = 0;

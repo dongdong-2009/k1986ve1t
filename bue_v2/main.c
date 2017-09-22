@@ -45,12 +45,13 @@ int main()
 	int32_t startlinpos = 0;
 	int32_t startphase = 0;
 
+	/* конфигурирование системы */
 	SystemInit();
 	adc_dma_init();
 	encoder_init();	
 	debug_init();
 	
-	// init the regulators
+	/* инициализация регуляторов */
 	reg_init(&dreg, KI_DQCUR, KP_DQCUR);
 	reg_init(&qreg, KI_DQCUR, KP_DQCUR);	
 	reg_init(&sreg, 0, KP_SPD);	
@@ -58,7 +59,7 @@ int main()
 	
 	refpos = 0;
 	
-	// do some init actions	
+	/* цикл начальной инициализации датчиков */
 	dca = 0;
 	dcc = 0;
 	startlinpos = 0;
@@ -82,47 +83,53 @@ int main()
 	while(1)
 	{
 		PORTC->RXTX &= ~(1<<5);	
+		/* ждем окончания цикла DMA */
 		adc_dma_wait();			
-		// data is ready now
+		/* данные готовы */
 		PORTC->RXTX |= (1<<5);	
 		
-		// get the reference analog signal for positoin regulator
+		/* уставка положения штока */
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
-		reflinpos = ((i+(i>>3))>>3)+700;		// scale 
+		reflinpos = ((i+(i>>3))>>3)+700;		
 		//DAC->DAC1_DATA = reflinpos;
+		/* пересчет в положения в абсолютную фазу */
 		refpos = (reflinpos - startlinpos)*49;
 
-		// get the currents from ADC	
+		/* получаем данные с датчиков тока */
 		ia = (0xfff&(adc_dma_buffer[1])) - dca;
 		ic = (0xfff&(adc_dma_buffer[2])) - dcc;
 		ib = -ia-ic;
 		
-		// get the data from linear positon sensor
+		/* получаем данные с линейного датчика положения штока */
 		linpos = (0xfff&(adc_dma_buffer[3]));
 		//DAC->DAC1_DATA = linpos;
 	
-		// get the data from encoder
+		/* получаем значения угла с энкодера */
 		code = encoder_read();
-		// get the motor electrical angle (x4 mechanical angle)
-		phase = code & (1024-1);								
 		DAC->DAC1_DATA = code;		
 		
 		tcnt++;
 				
 		if( (0x7 & tcnt) == 0){			
-			// 3kHz
+			/* процесс с частотой 3 кГц */
+			/* рассчитываем скорость и положение ротора */
 			speed = get_speed(code, &position);		
-
+			
+			/* регулятор положения */
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
+			/* на выходе регулятора положения имеем уставку скорости */
 			refspeed = preg.y>>10;
 			
 			//refspeed = -1000;
 			
+			/* регулятор скорости */
 			reg_update(&sreg, (refspeed - speed), 0);
 			
+			/* на выходе регулятора скорости имеем уставку тока q */
 			qref = sreg.y>>10;
 			
+			/* ограничение значения тока */
 			if(qref > MAXQCURR) qref = MAXQCURR;
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
@@ -164,32 +171,34 @@ int main()
 		//debug_signal(ed<<2);
 */
 
-
-		// vector sync motor controller
-		phase = 1023&(phase+1002);    // phase offset for correct rotor position
+		/* рассчет электрического угла для 4 пар полюсного ротора  */
+		phase = code & (1024-1);		
+		/* сдвиг фазы ротора для правильного положения */
+		phase = 1023&(phase+1002);    	
 		
-		// convert abc currents to dq
+		/* преобразование фазных токов в систему координат ротора */
 		abc[0] = ia;
 		abc[1] = ib;
 		abc[2] = ic;
 		abc_to_dq(abc, dq, phase);
 		
-		// get the errors
+		/* рассчет ошибок для регуляторов тока */
 		ed = 0 - dq[0];
 		eq = qref - dq[1];
 		
-		// regulators do its work
+		/* регуляторы токов работают в системе координат ротора */
 		reg_update(&dreg, ed , fsat);
 		reg_update(&qreg, eq , fsat);			
-		
-		// pwm modulation
+		/* на выходе имеем напряжения в системе координат ротора */
 		dq[0] = dreg.y;
 		dq[1] = qreg.y;
 		
+		/* векторная ШИМ модуляция */
 		fsat = svpwm(abc, dq, phase);
+		/* синоусоидальная ШИМ модуляция */
 		//fsat = sinpwm(abc, dq, phase);
 		
-		// set the pwm controller
+		/* обновляем состояние ШИМ контроллера */
 		pwm_set(abc);
 		
 		//DAC->DAC1_DATA = ed + 2048;
@@ -201,8 +210,11 @@ int main()
 
 void TIMER4_Handler(void)
 {
+	/* каждые 40 мкс ... */
 	TIMER4->STATUS = 0;
 	system_time ++;
+	/* запуск цикла DMA */
 	adc_dma_start();
+	/* запрос к энкодеру */
 	encoder_start();
 }

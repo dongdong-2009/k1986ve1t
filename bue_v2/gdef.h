@@ -10,7 +10,7 @@
 
 #define KI_DQCUR 200
 #define KP_DQCUR 200
-#define KP_SPD 1000
+#define KP_SPD 200
 #define KP_POS 1000
 
 #define MAXQCURR 1000

@@ -1,0 +1,176 @@
+ARM GAS  dsp.s 			page 1
+
+
+   1              	.global dot3
+   2              	.global mfilter
+   3              	.global asm_dq_to_abc
+   4              	
+   5              	.section .data
+   6 0000 00000000 	flt_acm:	.word 0
+   7 0004 00000000 	flt_idx:	.word 0
+   8 0008 00000000 	flt_buf:	.skip 32*4, 0
+   8      00000000 
+   8      00000000 
+   8      00000000 
+   8      00000000 
+   9              	
+  10              	.section .text
+  11              	
+  12              	@; r0 - abc[]
+  13              	@; r1 - dq[]
+  14              	@; r2 - angle
+  15              	asm_dq_to_abc:
+  16 0000 70B5     		push {r4,r5,r6,lr}
+  17              	
+  18 0002 314B     		ldr r3, =cos_tb 	
+  19 0004 9200     		lsl r2,#2
+  20              	
+  21              		@ abc[0]
+  22 0006 9C58     		ldr r4,[r3,r2]			@; r4 = cos_tb[angle]	
+  23 0008 0D68     		ldr r5,[r1]				@; r5 = dq[0]	
+  24 000a 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle]
+  25              			
+  26 000c 184E     		ldr r6,P_3PI2
+  27 000e B618     		add r6,r6,r2
+  28 0010 1C4D     		ldr r5,MASK1023
+  29 0012 3540     		and r5,r6
+  30 0014 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+3*512/2]
+  31 0016 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
+  32 0018 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+3*512/2]
+  33              	
+  34 001a 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]	
+  35 001c 2415     		asr r4,#20				
+  36 001e 0460     		str r4,[r0]				@; abc[0] = (dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]) >> 20
+  37              			
+  38              		@ abc[1]
+  39 0020 144E     		ldr r6,P_4PI3
+  40 0022 B618     		add r6,r6,r2
+  41 0024 174D     		ldr r5,MASK1023
+  42 0026 3540     		and r5,r6
+  43 0028 5C59     		ldr r4,[r3,r5]			@; r4 = cos_tb[angle+4*512/3]
+  44 002a 0D68     		ldr r5,[r1]				@; r5 = dq[0]
+  45 002c 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3]
+  46              		
+  47 002e 134E     		ldr r6,P_4PI33PI2
+  48 0030 B618     		add r6,r6,r2
+  49 0032 144D     		ldr r5,MASK1023
+  50 0034 3540     		and r5,r6
+  51 0036 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+4*512/3+3*512/2]
+  52 0038 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
+  53 003a 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+4*512/3+3*512/2]
+ARM GAS  dsp.s 			page 2
+
+
+  54              		
+  55 003c 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3] - dq[1]*cos_tb[angle+4*512/3+3*512/2]	
+  56 003e 2415     		asr r4,#20				
+  57 0040 4460     		str r4,[r0,#4]	
+  58              		
+  59              		@ abc[2]
+  60 0042 0D4E     		ldr r6,P_2PI3
+  61 0044 B618     		add r6,r6,r2
+  62 0046 0F4D     		ldr r5,MASK1023
+  63 0048 3540     		and r5,r6
+  64 004a 5C59     		ldr r4,[r3,r5]	
+  65 004c 0D68     		ldr r5,[r1]		
+  66 004e 6C43     		mul r4,r4,r5	
+  67              		
+  68 0050 0B4E     		ldr r6,P_2PI33PI2
+  69 0052 B618     		add r6,r6,r2
+  70 0054 0B4D     		ldr r5,MASK1023
+  71 0056 3540     		and r5,r6
+  72 0058 5E59     		ldr r6,[r3,r5]	
+  73 005a 4D68     		ldr r5,[r1,#4]	
+  74 005c 7543     		mul r5,r5,r6	
+  75              		
+  76 005e 641B     		sub r4,r4,r5		
+  77 0060 2415     		asr r4,#20				
+  78 0062 8460     		str r4,[r0,#8]		
+  79              		
+  80 0064 70BD     		pop {r4,r5,r6,pc}
+  81              	
+  82              	
+  83 0066 C046C046 	.align 4
+  83      C046C046 
+  83      C046
+  84 0070 000C0000 	P_3PI2:		.word (4*3*512)/2
+  85 0074 AA0A0000 	P_4PI3:		.word 4*4*512/3
+  86 0078 55050000 	P_2PI3:		.word 4*2*512/3
+  87 007c AA160000 	P_4PI33PI2:	.word 4*4*512/3+4*3*512/2
+  88 0080 55110000 	P_2PI33PI2:	.word 4*2*512/3+4*3*512/2
+  89 0084 FC0F0000 	MASK1023:   .word 4*1023
+  90              	
+  91              	mfilter:
+  92              							@; r0=x
+  93 0088 1049     		ldr r1, =flt_idx
+  94 008a 0A68     		ldr r2, [r1] 
+  95 008c 0132     		add r2,r2,#1
+  96 008e 1F23     		mov r3,#(32-1)
+  97 0090 1A40     		and r2,r3	 		@; r2 = i
+  98 0092 0A60     		str r2, [r1]		
+  99              			
+ 100 0094 0E49     		ldr r1, =flt_buf
+ 101 0096 9200     		lsl r2,#2
+ 102 0098 8918     		add r1, r1, r2		 @; r1=&b[i]	
+ 103 009a 0A68     		ldr r2,[r1]			 @; r2=b[i](old)
+ 104 009c 0860     		str r0,[r1]			 @; b[i](new)=x		
+ 105 009e 801A     		sub r0,r0,r2		 @; r0=x-b[i]				
+ 106              	
+ 107 00a0 0C49     		ldr r1, =flt_acm
+ 108 00a2 0A68     		ldr r2,[r1]
+ARM GAS  dsp.s 			page 3
+
+
+ 109 00a4 8018     		add r0,r0,r2		 @ r0 = a+x-b[i](old)	
+ 110 00a6 0860     		str r0,[r1]
+ 111 00a8 4011     		asr r0,r0,#5		 @ r0 = ( a+x-b[i](old) )/32
+ 112              		
+ 113 00aa F746     		mov pc,lr
+ 114              	
+ 115              	dot3:
+ 116 00ac 80B5     		push {r7,lr}
+ 117              		
+ 118 00ae 0268     		ldr r2,[r0,#0]
+ 119 00b0 0B68     		ldr r3,[r1,#0]
+ 120 00b2 5A43     		mul r2,r2,r3
+ 121 00b4 171C     		mov r7,r2
+ 122              		
+ 123 00b6 4268     		ldr r2,[r0,#4]
+ 124 00b8 4B68     		ldr r3,[r1,#4]
+ 125 00ba 5A43     		mul r2,r2,r3	
+ 126 00bc BF18     		add r7,r7,r2
+ 127              		
+ 128 00be 8068     		ldr r0,[r0,#8]
+ 129 00c0 8B68     		ldr r3,[r1,#8]
+ 130 00c2 5843     		mul r0,r0,r3	
+ 131 00c4 3818     		add r0,r7,r0	
+ 132              		
+ 133 00c6 80BD0000 		pop {r7,pc}
+ 133      00000400 
+ 133      00000800 
+ 133      00000000 
+ 133      0000
+ARM GAS  dsp.s 			page 4
+
+
+DEFINED SYMBOLS
+               dsp.s:115    .text:000000ac dot3
+               dsp.s:91     .text:00000088 mfilter
+               dsp.s:15     .text:00000000 asm_dq_to_abc
+               dsp.s:6      .data:00000000 flt_acm
+               dsp.s:7      .data:00000004 flt_idx
+               dsp.s:8      .data:00000008 flt_buf
+               dsp.s:8      .data:00000008 $d
+               dsp.s:16     .text:00000000 $t
+               dsp.s:84     .text:00000070 P_3PI2
+               dsp.s:89     .text:00000084 MASK1023
+               dsp.s:85     .text:00000074 P_4PI3
+               dsp.s:87     .text:0000007c P_4PI33PI2
+               dsp.s:86     .text:00000078 P_2PI3
+               dsp.s:88     .text:00000080 P_2PI33PI2
+               dsp.s:84     .text:00000070 $d
+               dsp.s:93     .text:00000088 $t
+               dsp.s:133    .text:000000c8 $d
+
+UNDEFINED SYMBOLS
+cos_tb
