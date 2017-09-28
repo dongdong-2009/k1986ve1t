@@ -304,7 +304,7 @@ int main()
 	
 	// wait for system to be steady
 //	sleep(1000);
-
+/*
 	while(1){
 		
 		timer_wait();
@@ -329,7 +329,7 @@ int main()
 		dq_to_abc(abc, dq, 400);
 		i = 0;
 	}
-	
+*/	
 
 	// do some init actions	
 	dca = 0;
@@ -401,7 +401,7 @@ int main()
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>10;
 			
-			//refspeed = -1000;
+			//refspeed = -3000;
 			
 			reg_update(&sreg, (refspeed - speed), 0);
 			
