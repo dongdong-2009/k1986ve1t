@@ -10,10 +10,11 @@
 
 #define KI_DQCUR 200
 #define KP_DQCUR 200
-#define KP_SPD 200
-#define KP_POS 1000
+#define KP_SPD 1000
+#define KP_POS 2000
 
-#define MAXQCURR 1000
+#define MAXQCURR 2000
+#define PHASE_MARGIN (512+350)
 
 #define NE 12
 #define MAXENC (2<<(NE-1))

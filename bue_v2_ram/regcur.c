@@ -51,6 +51,8 @@ void reg_update(struct pi_reg_state *s, int32_t e, int32_t fs)
 }
 
 extern int32_t dot3(int32_t *a, int32_t *b);
+extern void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle);
+extern void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
 
 /*
 int32_t dot3(int32_t *a, int32_t *b)
@@ -59,6 +61,7 @@ int32_t dot3(int32_t *a, int32_t *b)
 }
 */
 
+/*
 void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle)
 {
 	int32_t ct[3] = {	cos_tb[angle], 
@@ -72,18 +75,20 @@ void abc_to_dq(int32_t *abc, int32_t *dq, int32_t angle)
 	dq[1] = (-dot3(abc, st)) >> 10;
 }
 
+
 void dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle)
 {
 	abc[0] = (dq[0]*cos_tb[angle] 				- dq[1]*cos_tb[1023&(angle+3*512/2)]) >> 20;
 	abc[1] = (dq[0]*cos_tb[1023&(angle+4*512/3)] - dq[1]*cos_tb[1023&(angle+4*512/3+3*512/2)]) >> 20;
 	abc[2] = (dq[0]*cos_tb[1023&(angle+2*512/3)] - dq[1]*cos_tb[1023&(angle+2*512/3+3*512/2)]) >> 20;
 }
+*/
 
 // calc magnitude and angle of 2Dvector using CORDIC algorithm
 void cord_atan(int32_t *v, int32_t *ang, int32_t *mag)
 {
-	const int32_t AngTable[] = {128, 76, 40, 20, 10, 5, 3, 1};
-	const int32_t kc[] = {724,  648, 628,  623,  623,  622,  622,  622};
+	const int32_t AngTable[] = {128, 76, 40, 20, 10, 5, 3, 1};	// angles for those tg =0.5,0.25 etc
+	const int32_t kc[] = {724,  648, 628,  623,  623,  622,  622,  622}; // mag correction 1/cos(ang)
 	int32_t SumAngle = 0; 
 	int i = 0;
 	int x, y, x1, y1;

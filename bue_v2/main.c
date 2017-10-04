@@ -106,7 +106,7 @@ int main()
 	
 		/* получаем значения угла с энкодера */
 		code = encoder_read();
-		DAC->DAC1_DATA = code;		
+		//DAC->DAC1_DATA = code;		
 		
 		tcnt++;
 				
@@ -114,14 +114,14 @@ int main()
 			/* процесс с частотой 3 кГц */
 			/* рассчитываем скорость и положение ротора */
 			speed = get_speed(code, &position);		
-			
+
 			/* регулятор положения */
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			/* на выходе регулятора положения имеем уставку скорости */
 			refspeed = preg.y>>10;
 			
-			//refspeed = -1000;
+			//refspeed = 1000;
 			
 			/* регулятор скорости */
 			reg_update(&sreg, (refspeed - speed), 0);
@@ -134,7 +134,7 @@ int main()
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
 			//DAC->DAC1_DATA = (speed>>1) + 2048;
-			//DAC->DAC1_DATA = ((startphase-position)>>1) + 2048;
+			DAC->DAC1_DATA = ((startphase-position)>>3) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
@@ -174,7 +174,8 @@ int main()
 		/* рассчет электрического угла для 4 пар полюсного ротора  */
 		phase = code & (1024-1);		
 		/* сдвиг фазы ротора для правильного положения */
-		phase = 1023&(phase+1002);
+		//phase = 1023&(phase+1002);
+		phase = 1023&(phase+PHASE_MARGIN);    // phase offset for correct rotor position
 		
 		
 		/* преобразование фазных токов в систему координат ротора */

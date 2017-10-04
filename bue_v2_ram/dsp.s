@@ -1,6 +1,8 @@
 .global dot3
 .global mfilter
-.global asm_dq_to_abc
+.global dq_to_abc
+.global abc_to_dq
+.global asm_test_loop
 
 .section .data
 flt_acm:	.word 0
@@ -9,10 +11,33 @@ flt_buf:	.skip 32*4, 0
 
 .section .text
 
+@; r0 - v[]
+@; r1 - *ang
+@; r2 - *mag
+asm_test_loop:
+	push {r4,r5,r6,lr}
+
+	eor		r3,r3	
+	ldr		r4,[r0]
+	cmp		r4,#0
+
+	
+	
+/*loop:
+	sub r0,r0,#1
+	bpl loop
+*/	
+
+	
+	pop {r4,r5,r6,pc}
+
+AngTable:	.word 128, 76, 40, 20, 10, 5, 3, 1					@; angles for those tg =0.5,0.25 etc
+kc:			.word 724, 648, 628, 623, 623, 622, 622, 622 		@; mag correction cos(ang)
+
 @; r0 - abc[]
 @; r1 - dq[]
 @; r2 - angle
-asm_abc_to_dq:
+abc_to_dq:
 	push {r4,r5,r6,lr}
 
 	ldr r3, =cos_tb 	
@@ -41,6 +66,7 @@ asm_abc_to_dq:
 	mul r5,r5,r6			@; r5 = abc[2]*cos_tb[angle+2*512/3]	
 	add r4,r4,r5			@; r4 = abc[0]*cos_tb[angle] + abc[1]*cos_tb[angle+4*512/3] + abc[2]*cos_tb[angle+2*512/3]
 	
+	asr r4,#10
 	str r4,[r1]				@; dq[0] = r4
 	
 	@; calculate dq[1]
@@ -70,7 +96,10 @@ asm_abc_to_dq:
 	mul r5,r5,r6			@; r5 = abc[2]*sin[angle+2*512/3]	
 	add r4,r4,r5			@; r4 = abc[0]*sin[angle] + abc[1]*sin[angle+4*512/3] + abc[2]*sin[angle+2*512/3]
 	
-	str r4,[r1,#4]			@; dq[1] = r4		
+	asr r4,#10
+	eor r6,r6
+	sub r6,r4
+	str r6,[r1,#4]			@; dq[1] = r4		
 	
 	pop {r4,r5,r6,pc}
 
@@ -78,7 +107,7 @@ asm_abc_to_dq:
 @; r0 - abc[]
 @; r1 - dq[]
 @; r2 - angle
-asm_dq_to_abc:
+dq_to_abc:
 	push {r4,r5,r6,lr}
 
 	ldr r3, =cos_tb 	

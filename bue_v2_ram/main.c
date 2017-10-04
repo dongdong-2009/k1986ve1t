@@ -265,8 +265,7 @@ static inline void debug_signal(int32_t s)
 	DAC->DAC1_DATA = s + 2048;
 }	
 
-extern int32_t c_mfilter(int32_t x);
-extern void asm_dq_to_abc(int32_t *abc, int32_t *dq, int32_t angle);
+extern int32_t asm_test_loop(int32_t x);
 
 __attribute__ ((section(".main_sec")))
 int main()
@@ -295,10 +294,10 @@ int main()
 	SystemInit();
 
 	// init the regulators
-	reg_init(&dreg, 200, 200);
-	reg_init(&qreg, 200, 200);	
-	reg_init(&sreg, 0, 1000);	
-	reg_init(&preg, 0, 1000);
+	reg_init(&dreg, 800, 800);
+	reg_init(&qreg, 800, 800);	
+	reg_init(&sreg, 0, 4000);
+	reg_init(&preg, 1, 15000);
 	
 	refpos = 0;
 	
@@ -316,20 +315,13 @@ int main()
 				
 		//PORTC->RXTX ^= (1<<6);
 		DAC->DAC1_DATA = 0xfff&adc_dma_buffer[3];
-		
-		PORTC->RXTX |= (1<<6);
-		c_mfilter(5);
-		PORTC->RXTX &= ~(1<<6);
-		
-		dq[0] = 280<<10;
-		dq[1] = 120<<10;
-		asm_dq_to_abc(abc, dq, 400);
-		dq[0] = 280<<10;
-		dq[1] = 120<<10;		
-		dq_to_abc(abc, dq, 400);
+			
+	
+		asm_test_loop(3);
 		i = 0;
+		
 	}
-*/	
+*/
 
 	// do some init actions	
 	dca = 0;
@@ -389,7 +381,7 @@ int main()
 		code = g2b((MAXENC-1) & (SSP2->DR));	
 		// get the motor electrical angle (x4 mechanical angle)
 		phase = code & (1024-1);								
-		DAC->DAC1_DATA = code;		
+		//DAC->DAC1_DATA = code;		
 		
 		tcnt++;
 				
@@ -399,19 +391,19 @@ int main()
 
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
-			refspeed = preg.y>>10;
+			refspeed = preg.y>>12;
 			
-			//refspeed = -3000;
+			//refspeed = 1000;
 			
 			reg_update(&sreg, (refspeed - speed), 0);
 			
-			qref = sreg.y>>10;
+			qref = sreg.y>>12;
 			
 			if(qref > MAXQCURR) qref = MAXQCURR;
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
-			//DAC->DAC1_DATA = (speed>>1) + 2048;
-			//DAC->DAC1_DATA = ((startphase-position)>>1) + 2048;
+			DAC->DAC1_DATA = (refspeed>>6) + 2048;
+			//DAC->DAC1_DATA = ((startphase-position)>>10) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
@@ -452,7 +444,7 @@ int main()
 
 
 		// vector sync motor controller
-		phase = 1023&(phase+1002);    // phase offset for correct rotor position
+		phase = 1023&(phase+512+350);    // phase offset for correct rotor position
 		
 		// convert abc currents to dq
 		abc[0] = ia;
@@ -469,12 +461,13 @@ int main()
 		reg_update(&qreg, eq , fsat);			
 		
 		// pwm modulation
-		dq[0] = dreg.y;
-		dq[1] = qreg.y;
+		dq[0] = dreg.y>>2;
+		dq[1] = qreg.y>>2;
 		
 		fsat = svpwm(abc, dq, phase);
-		//fsat = sinpwm(abc, dq, phase);
+		//fsat = sinpwm(abc, dq, phase);		
 		
+	
 		// set the pwm controller
 		TIMER4->CCR1 = (abc[0])+512;
 		TIMER4->CCR2 = (abc[1])+512;
