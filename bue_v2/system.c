@@ -101,6 +101,7 @@ void TimerConfig(void)
 	TIMER4->CH1_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH1_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH1_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1	
+	TIMER4->CH1_CNTRL2 |= (1<<3); // CRRRLD on
 
 	// channel 2
 	TIMER4->CH2_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
@@ -114,6 +115,7 @@ void TimerConfig(void)
 	TIMER4->CH2_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH2_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH2_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1		
+	TIMER4->CH2_CNTRL2 |= (1<<3); // CRRRLD on
 
 	// channel 3
 	TIMER4->CH3_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
@@ -127,19 +129,21 @@ void TimerConfig(void)
 	TIMER4->CH3_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH3_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH3_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1		
+	TIMER4->CH3_CNTRL2 |= (1<<3); // CRRRLD on
 	
 	// setting for dead time generator (DTG)
 	//TIMER4->CH1_DTG |= (1 << 4);
 	//TIMER4->CH1_DTG |= 15;
-	TIMER4->CH1_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
-	TIMER4->CH2_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
-	TIMER4->CH3_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
+	TIMER4->CH1_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
+	TIMER4->CH2_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
+	TIMER4->CH3_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
 
 	TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
 
 	TIMER4->CNTRL = TIMER_CNTRL_CNT_EN; 						// start count up
 	NVIC_EnableIRQ(TIMER4_IRQn); 								// enable in nvic int from tim4
 }
+
 
 void SystemInit(void)
 {

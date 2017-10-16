@@ -15,11 +15,20 @@ flt_buf:	.skip 32*4, 0
 @; r1 - *ang
 @; r2 - *mag
 asm_test_loop:
-	push {r4,r5,r6,lr}
+	push {r4,r5,r6,r7,lr}
 
-	eor		r3,r3	
-	ldr		r4,[r0]
-	cmp		r4,#0
+	ldr r3,[r0,#0]
+	asr r4,r3,#31
+	add r3,r3,r4
+	eor r3,r3,r4	@; r3=abs(v[0])
+	ldr r4,[r0,#4]	@; r4=v[1]
+	
+	eor r5,r5		@; r5 - SumAngle=0
+	eor r6,r6		@; r6 - ns=0
+	
+	
+	
+	
 
 	
 	
@@ -29,7 +38,7 @@ asm_test_loop:
 */	
 
 	
-	pop {r4,r5,r6,pc}
+	pop {r4,r5,r6,r7,pc}
 
 AngTable:	.word 128, 76, 40, 20, 10, 5, 3, 1					@; angles for those tg =0.5,0.25 etc
 kc:			.word 724, 648, 628, 623, 623, 622, 622, 622 		@; mag correction cos(ang)

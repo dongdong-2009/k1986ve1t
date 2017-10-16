@@ -22,10 +22,16 @@ CPFLAGS = -Obinary
 all: blink.bin
 	@echo $(IMAGE)
 
+usb.o: usb.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 usb_desc.o: usb_desc.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 xprintf.o: xprintf.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+uart.o: uart.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 startup.o: startup.c
@@ -34,7 +40,7 @@ startup.o: startup.c
 main.o: main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-blink.elf: main.o startup.o xprintf.o usb_desc.o 
+blink.elf: main.o xprintf.o usb_desc.o startup.o usb.o
 	$(LD) $(LFLAGS) -Map blink.map -o $@ $^ $(LIBS)
 
 blink.bin: blink.elf

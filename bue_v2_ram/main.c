@@ -58,10 +58,15 @@ void PortConfig()
 						(0x03 << (8<<1))+(0x03 << (9<<1))+
 						(0x03 << (10<<1))+(0x03 << (11<<1)) );
 
+	PORTA->RXTX &= ~(1<<15);	     		/* clear the SD out */	
+	PORTA->OE |= (1<<15);					/* port is output mode */
+	PORTA->ANALOG |= (1<<15);				/* port is digital mode */
+	PORTA->PWR |= (3<<(15<<1));				/* max power of port */
+						
 	// альтернативная функция
 	PORTA->FUNC |= 	(0x02 << (6<<1))+(0x02 << (7<<1))+
 					(0x02 << (8<<1))+(0x02 << (9<<1))+
-					(0x02 << (10<<1))+(0x02 << (11<<1))	;
+					(0x02 << (10<<1))+(0x02 << (11<<1));
 	
 	// выход
 	PORTA->OE |= (1 << 6)+(1 << 7)+(1 << 8)+(1 << 9)+(1 << 10)+(1 << 11);
@@ -134,7 +139,7 @@ void TimerConfig(void)
 	TIMER4->CCR1 = 512;
 	TIMER4->CCR2 = 512;
 	TIMER4->CCR3 = 512;
-	
+
 	// channel 1
 	TIMER4->CH1_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
 	
@@ -149,6 +154,7 @@ void TimerConfig(void)
 	TIMER4->CH1_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH1_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH1_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1	
+	TIMER4->CH1_CNTRL2 |= (1<<3); // CRRRLD on
 
 	// channel 2
 	TIMER4->CH2_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
@@ -162,6 +168,7 @@ void TimerConfig(void)
 	TIMER4->CH2_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH2_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH2_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1		
+	TIMER4->CH2_CNTRL2 |= (1<<3); // CRRRLD on
 
 	// channel 3
 	TIMER4->CH3_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;				
@@ -175,13 +182,14 @@ void TimerConfig(void)
 	TIMER4->CH3_CNTRL1 &= ~(TIMER_CH_CNTRL1_NSELO_MASK | TIMER_CH_CNTRL1_NSELOE_MASK);		// настройка инверсного выхода канала 1
 	TIMER4->CH3_CNTRL1 |= (3 << TIMER_CH_CNTRL1_NSELO_OFFS);	    						// на инверсный выход канала 1 идет сигнал с DTG
 	TIMER4->CH3_CNTRL1 |= (1 << TIMER_CH_CNTRL1_NSELOE_OFFS);	    						// инверсный выход канала 1 всегда работает на выход на OE всегда 1		
-	
+	TIMER4->CH3_CNTRL2 |= (1<<3); // CRRRLD on
+
 	// setting for dead time generator (DTG)
 	//TIMER4->CH1_DTG |= (1 << 4);
 	//TIMER4->CH1_DTG |= 15;
-	TIMER4->CH1_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
-	TIMER4->CH2_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
-	TIMER4->CH3_DTG |= ((0xff&(100)) << 8); 					// delay DTG	
+	TIMER4->CH1_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
+	TIMER4->CH2_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
+	TIMER4->CH3_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
 
 	TIMER4->IE |= (0x0f << TIMER_IE_CCR_REF_EVENT_IE_OFFS); 	// прерывание по событию передний фронт на REF
 	//TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
@@ -294,8 +302,8 @@ int main()
 	SystemInit();
 
 	// init the regulators
-	reg_init(&dreg, 800, 800);
-	reg_init(&qreg, 800, 800);	
+	reg_init(&dreg, 600, 600);
+	reg_init(&qreg, 600, 600);	
 	reg_init(&sreg, 0, 4000);
 	reg_init(&preg, 1, 15000);
 	
@@ -350,6 +358,14 @@ int main()
 	reflinpos = startlinpos;		
 	startphase = startphase >> 10;
 
+/*
+	while(1){
+		TIMER4->CCR1 = 200+512;
+		TIMER4->CCR2 = 200+512;
+		TIMER4->CCR3 = 0+512;
+	}
+*/
+
 	while(1)
 	{
 		timer_wait();		
@@ -365,7 +381,7 @@ int main()
 		// get the reference analog signal for positoin regulator
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
 		//i = 5*(0xfff&(adc_dma_buffer[0]));
-		reflinpos = ((i+(i>>3))>>3)+700;		// scale 
+		reflinpos = ((i+(i>>3))>>3)+580;		// scale 
 		//DAC->DAC1_DATA = reflinpos;
 
 		// get the currents from ADC	
@@ -393,7 +409,7 @@ int main()
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>12;
 			
-			//refspeed = 1000;
+			//refspeed = -1000;
 			
 			reg_update(&sreg, (refspeed - speed), 0);
 			

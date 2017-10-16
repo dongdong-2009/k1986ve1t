@@ -61,9 +61,12 @@ void usb_reset()
 	USB->SEP2_CTRL = 0;
 	USB->SEP3_CTRL = 0;
 	
-	//USB->HSCR |= (1<<1); //reset usb core
-	//sleep(1);	
-	//USB->HSCR &= ~(1<<1);
+	/*USB->HSCR |= (1<<1); //reset usb core
+	sleep(1);	
+	USB->HSCR &= ~(1<<1);
+	*/
+	
+	USB->SA = 0;
 	
 	USB->SEP0_CTRL &= ~(1<<2); // DATA0
 	

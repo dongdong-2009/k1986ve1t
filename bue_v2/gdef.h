@@ -8,10 +8,20 @@
 #define SYS_TICKS 120000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
+
+/*
 #define KI_DQCUR 200
 #define KP_DQCUR 200
 #define KP_SPD 1000
 #define KP_POS 2000
+*/
+
+#define KI_DQCUR 600
+#define KP_DQCUR 600
+#define KI_SPD 0
+#define KP_SPD 4000
+#define KI_POS 1
+#define KP_POS 15000
 
 #define MAXQCURR 2000
 #define PHASE_MARGIN (512+350)

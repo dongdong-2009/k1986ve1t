@@ -1,0 +1,224 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000     0x1a50
+                0x00000000                . = ALIGN (0x4)
+ *(.interrupt_vector)
+ .interrupt_vector
+                0x00000000       0xc0 startup.o
+                0x00000000                table_interrupt_vector
+ *(.text)
+ .text          0x000000c0      0x468 main.o
+                0x000001a4                sleep
+                0x000001d0                main
+                0x00000238                PortConfig
+                0x00000370                ClkConfig
+                0x000003e4                TimerConfig
+                0x000004d8                SystemInit
+                0x000004fc                SysTick_Handler
+                0x00000514                TIMER4_Handler
+ .text          0x00000528       0x68 startup.o
+                0x00000528                Reset_Handler
+                0x00000528                handler_reset
+                0x00000588                DMA_Handler
+                0x00000588                UART2_Handler
+                0x00000588                HardFault_Handler
+                0x00000588                ARINC429T2_Handler
+                0x00000588                EXT_INT1_Handler
+                0x00000588                PendSV_Handler
+                0x00000588                NMI_Handler
+                0x00000588                ADC_Handler
+                0x00000588                TIMER2_Handler
+                0x00000588                WWDG_Handler
+                0x00000588                POWER_Handler
+                0x00000588                BKP_Handler
+                0x00000588                TIMER1_Handler
+                0x00000588                MIL_STD_1553B1_Handler
+                0x00000588                CAN2_Handler
+                0x00000588                TIMER3_Handler
+                0x00000588                default_handler
+                0x00000588                EXT_INT2_Handler
+                0x00000588                USB_Handler
+                0x00000588                ETHERNET_Handler
+                0x00000588                ARINC429T4_Handler
+                0x00000588                EXT_INT4_Handler
+                0x00000588                MIL_STD_1553B2_Handler
+                0x00000588                CAN1_Handler
+                0x00000588                EXT_INT3_Handler
+                0x00000588                SVC_Handler
+                0x00000588                BUSY_Handler
+                0x00000588                ARINC429T3_Handler
+                0x00000588                SSP2_Handler
+                0x00000588                SSP3_Handler
+                0x00000588                ARINC429T1_Handler
+                0x00000588                ARINC429R_Handler
+                0x00000588                SSP1_Handler
+ .text          0x00000590     0x1008 modbus_rtu.o
+                0x000005c8                start_trans
+                0x0000062c                uart_init
+                0x000006b4                modbus_init
+                0x000006d8                UART1_Handler
+                0x000007a0                pack_bits_to_bytes
+                0x00000858                set_coil
+ .text          0x00001598       0x90 crc.o
+                0x00001598                crc16
+ *(.text*)
+ *(.rodata)
+ .rodata        0x00001628        0xe main.o
+ *fill*         0x00001636        0x2 
+ .rodata        0x00001638      0x418 modbus_rtu.o
+                0x00001638                device_additional_info
+                0x00001650                proc_PDU_table
+ *(.rodata*)
+                0x00001a50                . = ALIGN (0x4)
+                0x00001a50                _data_flash = .
+
+.glue_7         0x00001a50        0x0
+ .glue_7        0x00001a50        0x0 linker stubs
+
+.glue_7t        0x00001a50        0x0
+ .glue_7t       0x00001a50        0x0 linker stubs
+
+.vfp11_veneer   0x00001a50        0x0
+ .vfp11_veneer  0x00001a50        0x0 linker stubs
+
+.v4_bx          0x00001a50        0x0
+ .v4_bx         0x00001a50        0x0 linker stubs
+
+.iplt           0x00001a50        0x0
+ .iplt          0x00001a50        0x0 main.o
+
+.rel.dyn        0x00001a50        0x0
+ .rel.iplt      0x00001a50        0x0 main.o
+
+.data           0x20000000      0x21c load address 0x00001a50
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+ .data          0x20000004        0x0 startup.o
+ .data          0x20000004       0x16 modbus_rtu.o
+                0x20000004                bits_tab
+                0x2000000c                input_bits_tab
+                0x20000010                register_tab
+                0x20000018                input_registers_tab
+ *fill*         0x2000001a        0x2 
+ .data          0x2000001c      0x200 crc.o
+                0x2000001c                crc_table_low
+                0x2000011c                crc_table_high
+ *(.data*)
+                0x2000021c                . = ALIGN (0x4)
+                0x2000021c                _data_end = .
+
+.igot.plt       0x2000021c        0x0 load address 0x00001c6c
+ .igot.plt      0x2000021c        0x0 main.o
+
+.bss            0x2000021c      0x220 load address 0x00001c6c
+                0x2000021c                . = ALIGN (0x4)
+                0x2000021c                _bss_begin = .
+                0x2000021c                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x2000021c        0xc main.o
+                0x2000021c                Current_Led
+                0x20000220                cnt
+                0x20000224                system_time
+ .bss           0x20000228        0x0 startup.o
+ .bss           0x20000228      0x214 modbus_rtu.o
+                0x20000228                modbus_error
+                0x2000022c                rx_buffer
+                0x2000032c                rx_index
+                0x20000330                rx_size
+                0x20000334                tx_buffer
+                0x20000434                tx_index
+                0x20000438                tx_numbytes
+ .bss           0x2000043c        0x0 crc.o
+ *(.bss*)
+ *(COMMON)
+                0x2000043c                . = ALIGN (0x4)
+                0x2000043c                _bss_end = .
+                0x2000043c                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x2000043c      0x400 load address 0x00001e8c
+                0x2000083c                . = (. + _stack_size)
+ *fill*         0x2000043c      0x400 
+LOAD main.o
+LOAD startup.o
+LOAD modbus_rtu.o
+LOAD crc.o
+OUTPUT(blink.elf elf32-littlearm)
+
+.debug_info     0x00000000     0x1833
+ .debug_info    0x00000000      0x972 main.o
+ .debug_info    0x00000972       0xf1 startup.o
+ .debug_info    0x00000a63      0xcea modbus_rtu.o
+ .debug_info    0x0000174d       0xe6 crc.o
+
+.debug_abbrev   0x00000000      0x5cb
+ .debug_abbrev  0x00000000      0x23b main.o
+ .debug_abbrev  0x0000023b       0xab startup.o
+ .debug_abbrev  0x000002e6      0x246 modbus_rtu.o
+ .debug_abbrev  0x0000052c       0x9f crc.o
+
+.debug_aranges  0x00000000       0x80
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x20 startup.o
+ .debug_aranges
+                0x00000040       0x20 modbus_rtu.o
+ .debug_aranges
+                0x00000060       0x20 crc.o
+
+.debug_line     0x00000000      0x4ec
+ .debug_line    0x00000000      0x152 main.o
+ .debug_line    0x00000152       0x50 startup.o
+ .debug_line    0x000001a2      0x2f5 modbus_rtu.o
+ .debug_line    0x00000497       0x55 crc.o
+
+.debug_str      0x00000000      0xa40
+ .debug_str     0x00000000      0x656 main.o
+                                0x686 (size before relaxing)
+ .debug_str     0x00000656       0xa5 startup.o
+                                0x166 (size before relaxing)
+ .debug_str     0x000006fb      0x30d modbus_rtu.o
+                                0x749 (size before relaxing)
+ .debug_str     0x00000a08       0x38 crc.o
+                                0x11a (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f startup.o
+ .comment       0x0000006e       0x6f modbus_rtu.o
+ .comment       0x0000006e       0x6f crc.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 startup.o
+ .ARM.attributes
+                0x00000062       0x31 modbus_rtu.o
+ .ARM.attributes
+                0x00000093       0x31 crc.o
+
+.debug_frame    0x00000000      0x458
+ .debug_frame   0x00000000      0x158 main.o
+ .debug_frame   0x00000158       0x4c startup.o
+ .debug_frame   0x000001a4      0x284 modbus_rtu.o
+ .debug_frame   0x00000428       0x30 crc.o

@@ -16,7 +16,7 @@ FLASH            0x00000000         0x00020000         xr
 Linker script and memory map
 
 
-.text           0x20100000     0x1c18
+.text           0x20100000     0x1c20
                 0x20100000                . = ALIGN (0x4)
  *(.startup)
  .startup       0x20100000       0x54 startup.o
@@ -45,68 +45,68 @@ Linker script and memory map
                 0x20100b80                xatoi
  .text          0x20100d5c        0x0 usb_desc.o
  .text          0x20100d5c        0x0 startup.o
- .text          0x20100d5c      0xa18 usb.o
+ .text          0x20100d5c      0xa20 usb.o
                 0x20100d5c                usb_device_init
                 0x20100dd4                usb_reset
-                0x20100e5c                usb_device_update
-                0x20100ff4                usb_read
-                0x20101068                usb_write
-                0x20101104                null_proc
-                0x20101110                enable_RX_proc
-                0x20101134                plan_ZeroLength_OUT_proc
-                0x20101174                plan_ZeroLength_IN_proc
-                0x201011b4                plan_Data_IN_proc
-                0x20101298                string_descriptor_proc
-                0x20101324                get_descriptor_proc
-                0x20101428                input0_for_setaddr_proc
-                0x2010146c                input0_for_setconfig_proc
-                0x201014e8                output0_for_setlinecoding_proc
-                0x201015b4                input0_for_setcontrolline_proc
-                0x201015fc                setup0_proc
- .text          0x20101774      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
-                0x20101774                __udivsi3
-                0x20101774                __aeabi_uidiv
-                0x20101880                __aeabi_uidivmod
- .text          0x20101888        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
-                0x20101888                __aeabi_ldiv0
-                0x20101888                __aeabi_idiv0
+                0x20100e64                usb_device_update
+                0x20100ffc                usb_read
+                0x20101070                usb_write
+                0x2010110c                null_proc
+                0x20101118                enable_RX_proc
+                0x2010113c                plan_ZeroLength_OUT_proc
+                0x2010117c                plan_ZeroLength_IN_proc
+                0x201011bc                plan_Data_IN_proc
+                0x201012a0                string_descriptor_proc
+                0x2010132c                get_descriptor_proc
+                0x20101430                input0_for_setaddr_proc
+                0x20101474                input0_for_setconfig_proc
+                0x201014f0                output0_for_setlinecoding_proc
+                0x201015bc                input0_for_setcontrolline_proc
+                0x20101604                setup0_proc
+ .text          0x2010177c      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                0x2010177c                __udivsi3
+                0x2010177c                __aeabi_uidiv
+                0x20101888                __aeabi_uidivmod
+ .text          0x20101890        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                0x20101890                __aeabi_ldiv0
+                0x20101890                __aeabi_idiv0
  *(.text*)
  *(.rodata)
- .rodata        0x2010188c       0x22 main.o
- *fill*         0x201018ae        0x2 
- .rodata        0x201018b0       0x7b xprintf.o
- *fill*         0x2010192b        0x1 
- .rodata        0x2010192c       0xb6 usb_desc.o
-                0x2010192c                Virtual_Com_Port_DeviceDescriptor
-                0x20101940                Virtual_Com_Port_ConfigDescriptor
-                0x20101984                Virtual_Com_Port_StringLangID
-                0x20101988                Virtual_Com_Port_StringVendor
-                0x201019b0                Virtual_Com_Port_StringProduct
- *fill*         0x201019e2        0x2 
- .rodata        0x201019e4      0x234 usb.o
+ .rodata        0x20101894       0x22 main.o
+ *fill*         0x201018b6        0x2 
+ .rodata        0x201018b8       0x7b xprintf.o
+ *fill*         0x20101933        0x1 
+ .rodata        0x20101934       0xb6 usb_desc.o
+                0x20101934                Virtual_Com_Port_DeviceDescriptor
+                0x20101948                Virtual_Com_Port_ConfigDescriptor
+                0x2010198c                Virtual_Com_Port_StringLangID
+                0x20101990                Virtual_Com_Port_StringVendor
+                0x201019b8                Virtual_Com_Port_StringProduct
+ *fill*         0x201019ea        0x2 
+ .rodata        0x201019ec      0x234 usb.o
  *(.rodata*)
-                0x20101c18                . = ALIGN (0x4)
-                0x20101c18                _data_flash = .
+                0x20101c20                . = ALIGN (0x4)
+                0x20101c20                _data_flash = .
 
-.glue_7         0x20101c18        0x0
- .glue_7        0x20101c18        0x0 linker stubs
+.glue_7         0x20101c20        0x0
+ .glue_7        0x20101c20        0x0 linker stubs
 
-.glue_7t        0x20101c18        0x0
- .glue_7t       0x20101c18        0x0 linker stubs
+.glue_7t        0x20101c20        0x0
+ .glue_7t       0x20101c20        0x0 linker stubs
 
-.vfp11_veneer   0x20101c18        0x0
- .vfp11_veneer  0x20101c18        0x0 linker stubs
+.vfp11_veneer   0x20101c20        0x0
+ .vfp11_veneer  0x20101c20        0x0 linker stubs
 
-.v4_bx          0x20101c18        0x0
- .v4_bx         0x20101c18        0x0 linker stubs
+.v4_bx          0x20101c20        0x0
+ .v4_bx         0x20101c20        0x0 linker stubs
 
-.iplt           0x20101c18        0x0
- .iplt          0x20101c18        0x0 main.o
+.iplt           0x20101c20        0x0
+ .iplt          0x20101c20        0x0 main.o
 
-.rel.dyn        0x20101c18        0x0
- .rel.iplt      0x20101c18        0x0 main.o
+.rel.dyn        0x20101c20        0x0
+ .rel.iplt      0x20101c20        0x0 main.o
 
-.data           0x20000000       0x28 load address 0x20101c18
+.data           0x20000000       0x28 load address 0x20101c20
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_begin = .
  *(.data)
@@ -126,10 +126,10 @@ Linker script and memory map
                 0x20000028                . = ALIGN (0x4)
                 0x20000028                _data_end = .
 
-.igot.plt       0x20000028        0x0 load address 0x20101c40
+.igot.plt       0x20000028        0x0 load address 0x20101c48
  .igot.plt      0x20000028        0x0 main.o
 
-.bss            0x20000028       0x3c load address 0x20101c40
+.bss            0x20000028       0x3c load address 0x20101c48
                 0x20000028                . = ALIGN (0x4)
                 0x20000028                _bss_begin = .
                 0x20000028                __bss_start__ = _bss_begin
@@ -164,7 +164,7 @@ Linker script and memory map
                 0x20007c00                _stack_begin = (_stack_end - _stack_size)
                 0x20007c00                . = _stack_begin
 
-._stack         0x20000064      0x400 load address 0x20101c7c
+._stack         0x20000064      0x400 load address 0x20101c84
                 0x20000464                . = (. + _stack_size)
  *fill*         0x20000064      0x400 
 LOAD main.o
@@ -203,12 +203,12 @@ OUTPUT(blink.elf elf32-littlearm)
  .debug_aranges
                 0x00000078       0x20 usb.o
 
-.debug_line     0x00000000      0x706
+.debug_line     0x00000000      0x707
  .debug_line    0x00000000      0x18b main.o
  .debug_line    0x0000018b      0x2e3 xprintf.o
  .debug_line    0x0000046e       0x4c usb_desc.o
  .debug_line    0x000004ba       0x49 startup.o
- .debug_line    0x00000503      0x203 usb.o
+ .debug_line    0x00000503      0x204 usb.o
 
 .debug_str      0x00000000      0xe25
  .debug_str     0x00000000      0x60c main.o

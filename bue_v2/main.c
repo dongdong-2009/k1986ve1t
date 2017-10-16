@@ -45,20 +45,22 @@ int main()
 	int32_t startlinpos = 0;
 	int32_t startphase = 0;
 
+	
+
 	/* конфигурирование системы */
 	SystemInit();
 	adc_dma_init();
 	encoder_init();	
 	debug_init();
-	
+
 	/* инициализация регуляторов */
 	reg_init(&dreg, KI_DQCUR, KP_DQCUR);
 	reg_init(&qreg, KI_DQCUR, KP_DQCUR);	
-	reg_init(&sreg, 0, KP_SPD);	
-	reg_init(&preg, 0, KP_POS);
+	reg_init(&sreg, KI_SPD, KP_SPD);	
+	reg_init(&preg, KI_POS, KP_POS);
 	
 	refpos = 0;
-	
+			
 	/* цикл начальной инициализации датчиков */
 	dca = 0;
 	dcc = 0;
@@ -90,7 +92,7 @@ int main()
 		
 		/* уставка положения штока */
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
-		reflinpos = ((i+(i>>3))>>3)+700;		
+		reflinpos = ((i+(i>>3))>>3)+580;		
 		//DAC->DAC1_DATA = reflinpos;
 		/* пересчет в положения в абсолютную фазу */
 		refpos = (reflinpos - startlinpos)*49;
@@ -119,7 +121,7 @@ int main()
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			/* на выходе регулятора положения имеем уставку скорости */
-			refspeed = preg.y>>10;
+			refspeed = preg.y>>12;
 			
 			//refspeed = 1000;
 			
@@ -127,7 +129,7 @@ int main()
 			reg_update(&sreg, (refspeed - speed), 0);
 			
 			/* на выходе регулятора скорости имеем уставку тока q */
-			qref = sreg.y>>10;
+			qref = sreg.y>>12;
 			
 			/* ограничение значения тока */
 			if(qref > MAXQCURR) qref = MAXQCURR;
@@ -192,12 +194,12 @@ int main()
 		reg_update(&dreg, ed , fsat);
 		reg_update(&qreg, eq , fsat);			
 		/* на выходе имеем напряжения в системе координат ротора */
-		dq[0] = dreg.y;
-		dq[1] = qreg.y;
+		dq[0] = dreg.y >> 2;
+		dq[1] = qreg.y >> 2;
 		
 		/* векторная ШИМ модуляция */
 		fsat = svpwm(abc, dq, phase);
-		/* синоусоидальная ШИМ модуляция */
+		/* синусоидальная ШИМ модуляция */
 		//fsat = sinpwm(abc, dq, phase);
 		
 		/* обновляем состояние ШИМ контроллера */

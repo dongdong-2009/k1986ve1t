@@ -1,0 +1,100 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x00020000         xr
+SRAM1            0x20000000         0x00008000         xrw
+SRAM2            0x20100000         0x00004000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x20100000      0x800
+ *(.main_sec)
+ .main_sec      0x20100000       0x98 main.o
+                0x20100000                main
+ *(.text)
+ .text          0x20100098      0x36c main.o
+                0x20100098                sleep
+                0x201000d4                PortConfig
+                0x2010020c                ClkConfig
+                0x20100280                TimerConfig
+                0x20100370                UartConfig
+                0x201003e8                SystemInit
+                0x20100800                . = ALIGN (0x400)
+ *fill*         0x20100404      0x3fc 
+ *(.dma_sec)
+
+.rodata         0x20100800        0xe
+ .rodata        0x20100800        0xe main.o
+
+.glue_7         0x20100810        0x0
+ .glue_7        0x20100810        0x0 linker stubs
+
+.glue_7t        0x20100810        0x0
+ .glue_7t       0x20100810        0x0 linker stubs
+
+.vfp11_veneer   0x20100810        0x0
+ .vfp11_veneer  0x20100810        0x0 linker stubs
+
+.v4_bx          0x20100810        0x0
+ .v4_bx         0x20100810        0x0 linker stubs
+
+.iplt           0x20100810        0x0
+ .iplt          0x20100810        0x0 main.o
+
+.rel.dyn        0x20100810        0x0
+ .rel.iplt      0x20100810        0x0 main.o
+
+.data           0x20000000        0x4
+ *(.data)
+ .data          0x20000000        0x4 main.o
+                0x20000000                test_pwm
+
+.igot.plt       0x20000004        0x0
+ .igot.plt      0x20000004        0x0 main.o
+
+.bss            0x20000004        0xc
+ *(.bss)
+ .bss           0x20000004        0xc main.o
+                0x20000004                Current_Led
+                0x20000008                i
+                0x2000000c                system_time
+LOAD main.o
+START GROUP
+LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a
+END GROUP
+OUTPUT(bue.elf elf32-littlearm)
+
+.debug_info     0x00000000      0x5c1
+ .debug_info    0x00000000      0x5c1 main.o
+
+.debug_abbrev   0x00000000      0x13b
+ .debug_abbrev  0x00000000      0x13b main.o
+
+.debug_aranges  0x00000000       0x28
+ .debug_aranges
+                0x00000000       0x28 main.o
+
+.debug_ranges   0x00000000       0x18
+ .debug_ranges  0x00000000       0x18 main.o
+
+.debug_line     0x00000000      0x165
+ .debug_line    0x00000000      0x165 main.o
+
+.debug_str      0x00000000      0x380
+ .debug_str     0x00000000      0x380 main.o
+                                0x3ab (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+
+.debug_frame    0x00000000       0xdc
+ .debug_frame   0x00000000       0xdc main.o

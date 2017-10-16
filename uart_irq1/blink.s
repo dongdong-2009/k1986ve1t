@@ -153,7 +153,7 @@ Disassembly of section .text:
  1c6:	46bd      	mov	sp, r7
  1c8:	b004      	add	sp, #16
  1ca:	bd80      	pop	{r7, pc}
- 1cc:	2000000c 	.word	0x2000000c
+ 1cc:	2000001c 	.word	0x2000001c
 
 000001d0 <main>:
  1d0:	b590      	push	{r4, r7, lr}
@@ -173,8 +173,8 @@ Disassembly of section .text:
  1ee:	617b      	str	r3, [r7, #20]
  1f0:	e7fe      	b.n	1f0 <main+0x20>
  1f2:	46c0      	nop			; (mov r8, r8)
- 1f4:	00000650 	.word	0x00000650
- 1f8:	20000004 	.word	0x20000004
+ 1f4:	00000648 	.word	0x00000648
+ 1f8:	20000014 	.word	0x20000014
 
 000001fc <PortConfig>:
  1fc:	b580      	push	{r7, lr}
@@ -526,7 +526,7 @@ Disassembly of section .text:
  4ce:	46c0      	nop			; (mov r8, r8)
  4d0:	46bd      	mov	sp, r7
  4d2:	bd80      	pop	{r7, pc}
- 4d4:	2000000c 	.word	0x2000000c
+ 4d4:	2000001c 	.word	0x2000001c
 
 000004d8 <TIMER4_Handler>:
  4d8:	b580      	push	{r7, lr}
@@ -585,11 +585,11 @@ Disassembly of section .text:
  546:	46bd      	mov	sp, r7
  548:	b002      	add	sp, #8
  54a:	bd80      	pop	{r7, pc}
- 54c:	00000660 	.word	0x00000660
+ 54c:	00000658 	.word	0x00000658
  550:	20000000 	.word	0x20000000
- 554:	20000004 	.word	0x20000004
- 558:	20000004 	.word	0x20000004
- 55c:	20000010 	.word	0x20000010
+ 554:	20000014 	.word	0x20000014
+ 558:	20000014 	.word	0x20000014
+ 55c:	20000020 	.word	0x20000020
 
 00000560 <default_handler>:
  560:	b580      	push	{r7, lr}
@@ -675,7 +675,7 @@ Disassembly of section .text:
  5fa:	4b07      	ldr	r3, [pc, #28]	; (618 <uart_init+0x78>)
  5fc:	4a06      	ldr	r2, [pc, #24]	; (618 <uart_init+0x78>)
  5fe:	6b92      	ldr	r2, [r2, #56]	; 0x38
- 600:	2110      	movs	r1, #16
+ 600:	2120      	movs	r1, #32
  602:	430a      	orrs	r2, r1
  604:	639a      	str	r2, [r3, #56]	; 0x38
  606:	2006      	movs	r0, #6
@@ -690,27 +690,23 @@ Disassembly of section .text:
 
 00000620 <UART1_Handler>:
  620:	b580      	push	{r7, lr}
- 622:	b082      	sub	sp, #8
- 624:	af00      	add	r7, sp, #0
- 626:	4b07      	ldr	r3, [pc, #28]	; (644 <UART1_Handler+0x24>)
- 628:	4a06      	ldr	r2, [pc, #24]	; (644 <UART1_Handler+0x24>)
- 62a:	6812      	ldr	r2, [r2, #0]
- 62c:	4906      	ldr	r1, [pc, #24]	; (648 <UART1_Handler+0x28>)
- 62e:	404a      	eors	r2, r1
- 630:	601a      	str	r2, [r3, #0]
- 632:	4b06      	ldr	r3, [pc, #24]	; (64c <UART1_Handler+0x2c>)
- 634:	681a      	ldr	r2, [r3, #0]
- 636:	1dfb      	adds	r3, r7, #7
- 638:	701a      	strb	r2, [r3, #0]
- 63a:	46c0      	nop			; (mov r8, r8)
- 63c:	46bd      	mov	sp, r7
- 63e:	b002      	add	sp, #8
- 640:	bd80      	pop	{r7, pc}
- 642:	46c0      	nop			; (mov r8, r8)
- 644:	400c0000 	.word	0x400c0000
- 648:	0000ffff 	.word	0x0000ffff
- 64c:	40030000 	.word	0x40030000
- 650:	6c6c6568 	.word	0x6c6c6568
- 654:	6f77206f 	.word	0x6f77206f
- 658:	0d646c72 	.word	0x0d646c72
- 65c:	0000000a 	.word	0x0000000a
+ 622:	af00      	add	r7, sp, #0
+ 624:	4b05      	ldr	r3, [pc, #20]	; (63c <UART1_Handler+0x1c>)
+ 626:	4a05      	ldr	r2, [pc, #20]	; (63c <UART1_Handler+0x1c>)
+ 628:	6812      	ldr	r2, [r2, #0]
+ 62a:	4905      	ldr	r1, [pc, #20]	; (640 <UART1_Handler+0x20>)
+ 62c:	404a      	eors	r2, r1
+ 62e:	601a      	str	r2, [r3, #0]
+ 630:	4b04      	ldr	r3, [pc, #16]	; (644 <UART1_Handler+0x24>)
+ 632:	2237      	movs	r2, #55	; 0x37
+ 634:	601a      	str	r2, [r3, #0]
+ 636:	46c0      	nop			; (mov r8, r8)
+ 638:	46bd      	mov	sp, r7
+ 63a:	bd80      	pop	{r7, pc}
+ 63c:	400c0000 	.word	0x400c0000
+ 640:	0000ffff 	.word	0x0000ffff
+ 644:	40030000 	.word	0x40030000
+ 648:	6c6c6568 	.word	0x6c6c6568
+ 64c:	6f77206f 	.word	0x6f77206f
+ 650:	0d646c72 	.word	0x0d646c72
+ 654:	0000000a 	.word	0x0000000a
