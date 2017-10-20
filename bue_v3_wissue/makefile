@@ -2,7 +2,6 @@
 # stm32 minimal example Makefile
 ##################################
 
-AS = arm-none-eabi-as
 CC = arm-none-eabi-gcc
 LD = arm-none-eabi-ld
 CP = arm-none-eabi-objcopy
@@ -16,15 +15,20 @@ LFLAGS  = -nostartfiles -T$(LKR_SCRIPT)
 LFLAGS  += -L/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m -L/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/arm-none-eabi/lib/armv6-m
 LIBS = --start-group -lgcc --end-group
 CPFLAGS = -Obinary
-AFLAGS = -g -mcpu=cortex-m1 -mthumb -mapcs-32 -ahls=bue.lst
 
 all: bue.bin
+
+encoder.o: encoder.c
+	$(CC) $(CFLAGS) -O3 -o encoder.o encoder.c
 
 adc_dma.o: adc_dma.c
 	$(CC) $(CFLAGS) -O0 -o adc_dma.o adc_dma.c
 
-regcur.o: regcur.c
-	$(CC) $(CFLAGS) -O3 -o regcur.o regcur.c
+system.o: system.c
+	$(CC) $(CFLAGS) -O0 -o system.o system.c
+
+dsp.o: dsp.c
+	$(CC) $(CFLAGS) -O3 -o dsp.o dsp.c
 
 startup.o: startup.c
 	$(CC) $(CFLAGS) -O0 -o startup.o startup.c
@@ -35,8 +39,8 @@ cos_tb.o: cos_tb.c
 main.o: main.c
 	$(CC) $(CFLAGS) -O0 -o main.o main.c
 
-bue.elf: main.o cos_tb.o startup.o adc_dma.o gdef.h regcur.o
-	$(LD) $(LFLAGS) -Map test.map -o bue.elf main.o cos_tb.o startup.o adc_dma.o regcur.o $(LIBS)
+bue.elf: main.o cos_tb.o startup.o dsp.o system.o encoder.o adc_dma.o gdef.h 
+	$(LD) $(LFLAGS) -Map test.map -o bue.elf main.o cos_tb.o startup.o dsp.o system.o encoder.o adc_dma.o $(LIBS)
 
 bue.bin: bue.elf
 	$(CP) $(CPFLAGS) bue.elf bue.bin

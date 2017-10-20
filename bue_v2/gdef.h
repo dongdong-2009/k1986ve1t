@@ -1,57 +1,17 @@
 #ifndef _GDEF_H
 #define _GDEF_H
 
-#include "opora.h"
-
 #define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
 #define EEPROM_DEL 4
 #define SYS_TICKS 120000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
-
-/*
-#define KI_DQCUR 200
-#define KP_DQCUR 200
-#define KP_SPD 1000
-#define KP_POS 2000
-*/
-
-#define KI_DQCUR 600
-#define KP_DQCUR 600
-#define KI_SPD 0
-#define KP_SPD 4000
-#define KI_POS 0
-#define KP_POS 10000
-
-#define MAXQCURR 1000
-#define PHASE_MARGIN (512+240)
-
 #define NE 12
 #define MAXENC (2<<(NE-1))
 
-#define DMA_TRANS_NUM 4
-#define DMA_DST_INC 0x02
-#define DMA_DST_SZ	0x02
-#define DMA_SRC_INC	0x03
-#define DMA_SRC_SZ	0x02
+#define START_ADC_CH(x) ADC->ADC1_CFG = (0x0<<ADC1_CFG_Delay_Go_OFFS) + ADC1_CFG_Cfg_REG_GO + ADC1_CFG_Cfg_REG_ADON + ((x)<<ADC1_CFG_Cfg_REG_CHS_OFFS) + ADC1_CFG_Cfg_REG_CLKS
+#define WAIT_FOR_ADC while(0 == (ADC->ADC1_STATUS & ADC1_STATUS_Flg_REG_EOCIF))
 
-#define MY_PI 512
-#define USE_SVPWM
-#define abs(a) ((a>0)?a:-a)
-
-typedef struct {
-	int32_t ki;
-	int32_t kp;
-	int32_t a;
-	int32_t y;	
-} pi_reg_state;
-
-
-typedef struct {
-	uint32_t	SourceEndPointer;
-	uint32_t	DestinationEndPointer;
-	uint32_t	Control;
-	uint32_t	Unused;
-} DMA_CTR_STRUCT;
+#define MAXQCURR 1000
 
 #endif

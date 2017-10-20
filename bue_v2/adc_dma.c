@@ -1,25 +1,25 @@
-#include "gdef.h"
+#include "opora.h"
 
-DMA_CTR_STRUCT			dma_ctr_str[32]		__attribute__ ((section(".dma_sec")));
-uint32_t				adc_dma_buffer[8]	__attribute__ ((section(".dma_sec")));
+#define DMA_TRANS_NUM 4
+#define DMA_DST_INC 0x02
+#define DMA_DST_SZ	0x02
+#define DMA_SRC_INC	0x03
+#define DMA_SRC_SZ	0x02
 
-void adc_init()
+struct DMA_CTR_STRUCT
 {
-	RST_CLK->PER_CLOCK |= (1<<17);
-	RST_CLK->ADC_MCO_CLOCK = (0x02 << 4) + (1 << 13);
-	 
-	// множ преобр
-	ADC->ADC1_CFG = 0 ;
-	ADC->ADC1_CFG |= ADC1_CFG_Cfg_REG_ADON + ADC1_CFG_Cfg_REG_CLKS +
-					 ADC1_CFG_Cfg_REG_CHCH;    // переключение каналов выбранных в регистре CHSEL
-					 				
-	ADC->ADC1_CHSEL |= (1<<0) + (1<<3) + (1<<4) + (1<<5); // выбор каналов для авт переключения
-	ADC->ADC1_STATUS = ADC1_STATUS_ECOIF_IE; // прерывание по окончанию преобразования
-	
-}
+	uint32_t	SourceEndPointer;
+	uint32_t	DestinationEndPointer;
+	uint32_t	Control;
+	uint32_t	Unused;
+};
 
-void dma_init(void)
+struct DMA_CTR_STRUCT			dma_ctr_str[32]		__attribute__ ((section(".dma_sec")));
+uint32_t						adc_dma_buffer[8]	__attribute__ ((section(".dma_sec")));
+
+void adc_dma_init(void)
 {
+
 	RST_CLK->PER_CLOCK |= 1<<5;
 
 	DMA->CTRL_BASE_PTR = (int32_t)dma_ctr_str;
@@ -40,8 +40,20 @@ void dma_init(void)
 							((DMA_TRANS_NUM-1)<<4) + 0x01;	
 }
 
-void adc_dma_init(void)
+void adc_dma_start(void)
 {
-	adc_init();
-	dma_init();
+	//int buf = ADC->ADC1_RESULT;	
+	ADC->ADC1_CFG |= ADC1_CFG_Cfg_REG_SAMPLE; 	// start ADC
+	DMA->CHNL_ENABLE_SET = 1<<30;			//enable channel 30 for ADC			
+}
+
+void adc_dma_wait(void)
+{
+	while( (dma_ctr_str[30].Control & 0x07) );	// waiting for the dma transaction to complete
+	ADC->ADC1_CFG &= ~ADC1_CFG_Cfg_REG_SAMPLE;  // stop ADC	
+	
+	// once again set control struct
+	dma_ctr_str[30].Control = (DMA_DST_INC<<30) + (DMA_DST_SZ<<28) + 
+							(DMA_SRC_INC<<26) + (DMA_SRC_SZ<<24) + 
+							((DMA_TRANS_NUM-1)<<4) + 0x01;	
 }
