@@ -305,7 +305,7 @@ int main()
 	reg_init(&dreg, 600, 600);
 	reg_init(&qreg, 600, 600);	
 	reg_init(&sreg, 0, 4000);
-	reg_init(&preg, 1, 15000);
+	reg_init(&preg, 0, 10000);
 	
 	refpos = 0;
 	
@@ -409,7 +409,7 @@ int main()
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>12;
 			
-			//refspeed = -1000;
+			//refspeed = -2000;
 			
 			reg_update(&sreg, (refspeed - speed), 0);
 			
@@ -418,8 +418,8 @@ int main()
 			if(qref > MAXQCURR) qref = MAXQCURR;
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
-			DAC->DAC1_DATA = (refspeed>>6) + 2048;
-			//DAC->DAC1_DATA = ((startphase-position)>>10) + 2048;
+			//DAC->DAC1_DATA = (refspeed>>6) + 2048;
+			DAC->DAC1_DATA = ((startphase-position)>>6) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
@@ -460,7 +460,7 @@ int main()
 
 
 		// vector sync motor controller
-		phase = 1023&(phase+512+350);    // phase offset for correct rotor position
+		phase = 1023&(phase+512+240);    // phase offset for correct rotor position
 		
 		// convert abc currents to dq
 		abc[0] = ia;

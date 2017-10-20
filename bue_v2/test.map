@@ -10,106 +10,106 @@ FLASH            0x00000000         0x00020000         xr
 Linker script and memory map
 
 
-.text           0x00000000     0x2320
+.text           0x00000000     0x232c
                 0x00000000                . = ALIGN (0x4)
  *(.interrupt_vector)
  .interrupt_vector
                 0x00000000       0xc0 startup.o
                 0x00000000                table_interrupt_vector
  *(.text)
- .text          0x000000c0      0x494 main.o
+ .text          0x000000c0      0x4a0 main.o
                 0x00000218                sleep
                 0x00000244                main
-                0x00000528                TIMER4_Handler
- .text          0x00000554        0x0 cos_tb.o
- .text          0x00000554       0x68 startup.o
-                0x00000554                Reset_Handler
-                0x00000554                handler_reset
-                0x000005b4                DMA_Handler
-                0x000005b4                UART2_Handler
-                0x000005b4                HardFault_Handler
-                0x000005b4                ARINC429T2_Handler
-                0x000005b4                EXT_INT1_Handler
-                0x000005b4                SysTick_Handler
-                0x000005b4                PendSV_Handler
-                0x000005b4                NMI_Handler
-                0x000005b4                ADC_Handler
-                0x000005b4                TIMER2_Handler
-                0x000005b4                WWDG_Handler
-                0x000005b4                POWER_Handler
-                0x000005b4                BKP_Handler
-                0x000005b4                TIMER1_Handler
-                0x000005b4                MIL_STD_1553B1_Handler
-                0x000005b4                CAN2_Handler
-                0x000005b4                TIMER3_Handler
-                0x000005b4                default_handler
-                0x000005b4                EXT_INT2_Handler
-                0x000005b4                UART1_Handler
-                0x000005b4                USB_Handler
-                0x000005b4                ETHERNET_Handler
-                0x000005b4                ARINC429T4_Handler
-                0x000005b4                EXT_INT4_Handler
-                0x000005b4                MIL_STD_1553B2_Handler
-                0x000005b4                CAN1_Handler
-                0x000005b4                EXT_INT3_Handler
-                0x000005b4                SVC_Handler
-                0x000005b4                BUSY_Handler
-                0x000005b4                ARINC429T3_Handler
-                0x000005b4                SSP2_Handler
-                0x000005b4                SSP3_Handler
-                0x000005b4                ARINC429T1_Handler
-                0x000005b4                ARINC429R_Handler
-                0x000005b4                SSP1_Handler
- .text          0x000005bc      0x804 dsp.o
-                0x000005bc                reg_init
-                0x000005c8                reg_update
-                0x000005f8                abc_to_dq
-                0x00000680                dq_to_abc
-                0x000006fc                cord_atan
-                0x00000898                sinpwm
-                0x00000a50                svpwm
-                0x00000d4c                get_speed
-                0x00000d98                mfilter
- .text          0x00000dc0      0x408 system.o
-                0x00000df8                PortConfig
-                0x00000f30                ClkConfig
-                0x00000fa4                TimerConfig
-                0x000011b0                SystemInit
- .text          0x000011c8       0x18 encoder.o
-                0x000011c8                b2g
-                0x000011d0                g2b
- .text          0x000011e0       0xe8 adc_dma.o
-                0x000011e0                adc_init
-                0x00001234                dma_init
-                0x000012b4                adc_dma_init
+                0x00000534                TIMER4_Handler
+ .text          0x00000560        0x0 cos_tb.o
+ .text          0x00000560       0x68 startup.o
+                0x00000560                Reset_Handler
+                0x00000560                handler_reset
+                0x000005c0                DMA_Handler
+                0x000005c0                UART2_Handler
+                0x000005c0                HardFault_Handler
+                0x000005c0                ARINC429T2_Handler
+                0x000005c0                EXT_INT1_Handler
+                0x000005c0                SysTick_Handler
+                0x000005c0                PendSV_Handler
+                0x000005c0                NMI_Handler
+                0x000005c0                ADC_Handler
+                0x000005c0                TIMER2_Handler
+                0x000005c0                WWDG_Handler
+                0x000005c0                POWER_Handler
+                0x000005c0                BKP_Handler
+                0x000005c0                TIMER1_Handler
+                0x000005c0                MIL_STD_1553B1_Handler
+                0x000005c0                CAN2_Handler
+                0x000005c0                TIMER3_Handler
+                0x000005c0                default_handler
+                0x000005c0                EXT_INT2_Handler
+                0x000005c0                UART1_Handler
+                0x000005c0                USB_Handler
+                0x000005c0                ETHERNET_Handler
+                0x000005c0                ARINC429T4_Handler
+                0x000005c0                EXT_INT4_Handler
+                0x000005c0                MIL_STD_1553B2_Handler
+                0x000005c0                CAN1_Handler
+                0x000005c0                EXT_INT3_Handler
+                0x000005c0                SVC_Handler
+                0x000005c0                BUSY_Handler
+                0x000005c0                ARINC429T3_Handler
+                0x000005c0                SSP2_Handler
+                0x000005c0                SSP3_Handler
+                0x000005c0                ARINC429T1_Handler
+                0x000005c0                ARINC429R_Handler
+                0x000005c0                SSP1_Handler
+ .text          0x000005c8      0x804 dsp.o
+                0x000005c8                reg_init
+                0x000005d4                reg_update
+                0x00000604                abc_to_dq
+                0x0000068c                dq_to_abc
+                0x00000708                cord_atan
+                0x000008a4                sinpwm
+                0x00000a5c                svpwm
+                0x00000d58                get_speed
+                0x00000da4                mfilter
+ .text          0x00000dcc      0x408 system.o
+                0x00000e04                PortConfig
+                0x00000f3c                ClkConfig
+                0x00000fb0                TimerConfig
+                0x000011bc                SystemInit
+ .text          0x000011d4       0x18 encoder.o
+                0x000011d4                b2g
+                0x000011dc                g2b
+ .text          0x000011ec       0xe8 adc_dma.o
+                0x000011ec                adc_init
+                0x00001240                dma_init
+                0x000012c0                adc_dma_init
  *(.text*)
  *(.rodata)
- .rodata        0x000012c8     0x1000 cos_tb.o
-                0x000012c8                cos_tb
- .rodata        0x000022c8       0x58 dsp.o
+ .rodata        0x000012d4     0x1000 cos_tb.o
+                0x000012d4                cos_tb
+ .rodata        0x000022d4       0x58 dsp.o
  *(.rodata*)
-                0x00002320                . = ALIGN (0x4)
-                0x00002320                _data_flash = .
+                0x0000232c                . = ALIGN (0x4)
+                0x0000232c                _data_flash = .
 
-.glue_7         0x00002320        0x0
- .glue_7        0x00002320        0x0 linker stubs
+.glue_7         0x0000232c        0x0
+ .glue_7        0x0000232c        0x0 linker stubs
 
-.glue_7t        0x00002320        0x0
- .glue_7t       0x00002320        0x0 linker stubs
+.glue_7t        0x0000232c        0x0
+ .glue_7t       0x0000232c        0x0 linker stubs
 
-.vfp11_veneer   0x00002320        0x0
- .vfp11_veneer  0x00002320        0x0 linker stubs
+.vfp11_veneer   0x0000232c        0x0
+ .vfp11_veneer  0x0000232c        0x0 linker stubs
 
-.v4_bx          0x00002320        0x0
- .v4_bx         0x00002320        0x0 linker stubs
+.v4_bx          0x0000232c        0x0
+ .v4_bx         0x0000232c        0x0 linker stubs
 
-.iplt           0x00002320        0x0
- .iplt          0x00002320        0x0 main.o
+.iplt           0x0000232c        0x0
+ .iplt          0x0000232c        0x0 main.o
 
-.rel.dyn        0x00002320        0x0
- .rel.iplt      0x00002320        0x0 main.o
+.rel.dyn        0x0000232c        0x0
+ .rel.iplt      0x0000232c        0x0 main.o
 
-.data           0x20000000        0x0 load address 0x00002320
+.data           0x20000000        0x0 load address 0x0000232c
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_begin = .
  *(.data)
@@ -124,10 +124,10 @@ Linker script and memory map
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_end = .
 
-.igot.plt       0x20000000        0x0 load address 0x00002320
+.igot.plt       0x20000000        0x0 load address 0x0000232c
  .igot.plt      0x20000000        0x0 main.o
 
-.bss            0x20000000       0xdc load address 0x00002320
+.bss            0x20000000       0xdc load address 0x0000232c
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _bss_begin = .
                 0x20000000                __bss_start__ = _bss_begin
@@ -156,7 +156,7 @@ Linker script and memory map
                 0x20007c00                _stack_begin = (_stack_end - _stack_size)
                 0x20007c00                . = _stack_begin
 
-._stack         0x200000dc      0x400 load address 0x000023fc
+._stack         0x200000dc      0x400 load address 0x00002408
                 0x200004dc                . = (. + _stack_size)
  *fill*         0x200000dc      0x400 
 
@@ -212,14 +212,14 @@ OUTPUT(bue.elf elf32-littlearm)
  .debug_aranges
                 0x000000b8       0x20 adc_dma.o
 
-.debug_line     0x00000000      0x80a
- .debug_line    0x00000000      0x1e3 main.o
- .debug_line    0x000001e3       0x4a cos_tb.o
- .debug_line    0x0000022d       0x50 startup.o
- .debug_line    0x0000027d      0x344 dsp.o
- .debug_line    0x000005c1      0x127 system.o
- .debug_line    0x000006e8       0x68 encoder.o
- .debug_line    0x00000750       0xba adc_dma.o
+.debug_line     0x00000000      0x80f
+ .debug_line    0x00000000      0x1e8 main.o
+ .debug_line    0x000001e8       0x4a cos_tb.o
+ .debug_line    0x00000232       0x50 startup.o
+ .debug_line    0x00000282      0x344 dsp.o
+ .debug_line    0x000005c6      0x127 system.o
+ .debug_line    0x000006ed       0x68 encoder.o
+ .debug_line    0x00000755       0xba adc_dma.o
 
 .debug_str      0x00000000      0xa33
  .debug_str     0x00000000      0x5d4 main.o

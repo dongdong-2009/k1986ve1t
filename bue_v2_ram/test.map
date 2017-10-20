@@ -16,37 +16,36 @@ Linker script and memory map
 
 .text           0x20100000     0x1620
  *(.main_sec)
- .main_sec      0x20100000      0x488 main.o
+ .main_sec      0x20100000      0x490 main.o
                 0x20100000                main
  *(.text)
- .text          0x20100488      0x584 main.o
-                0x20100488                sleep
-                0x201004c4                PortConfig
-                0x20100638                ClkConfig
-                0x201006ac                TimerConfig
-                0x201008b4                adc_init
-                0x20100908                dac_init
-                0x20100934                ssi_init
-                0x2010097c                b2g
-                0x20100994                g2b
-                0x201009c4                SystemInit
-                0x201009ec                timer_wait
- .text          0x20100a0c        0x0 cos_tb.o
- .text          0x20100a0c      0x734 regcur.o
-                0x20100a0c                mycos
-                0x20100a2c                mysin
-                0x20100a54                reg_init
-                0x20100a60                reg_update
-                0x20100a90                cord_atan
-                0x20100c34                sinpwm
-                0x20100d50                svpwm
-                0x201010c8                get_speed
-                0x20101118                c_mfilter
- .text          0x20101140      0x108 adc_dma.o
-                0x20101140                adc_dma_init
-                0x201011dc                adc_dma_start
-                0x20101204                adc_dma_wait
- *fill*         0x20101248        0x8 
+ .text          0x20100490      0x584 main.o
+                0x20100490                sleep
+                0x201004cc                PortConfig
+                0x20100640                ClkConfig
+                0x201006b4                TimerConfig
+                0x201008bc                adc_init
+                0x20100910                dac_init
+                0x2010093c                ssi_init
+                0x20100984                b2g
+                0x2010099c                g2b
+                0x201009cc                SystemInit
+                0x201009f4                timer_wait
+ .text          0x20100a14        0x0 cos_tb.o
+ .text          0x20100a14      0x734 regcur.o
+                0x20100a14                mycos
+                0x20100a34                mysin
+                0x20100a5c                reg_init
+                0x20100a68                reg_update
+                0x20100a98                cord_atan
+                0x20100c3c                sinpwm
+                0x20100d58                svpwm
+                0x201010d0                get_speed
+                0x20101120                c_mfilter
+ .text          0x20101148      0x108 adc_dma.o
+                0x20101148                adc_dma_init
+                0x201011e4                adc_dma_start
+                0x2010120c                adc_dma_wait
  .text          0x20101250      0x188 dsp.o
                 0x20101250                asm_test_loop
                 0x201012a2                abc_to_dq

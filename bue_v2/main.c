@@ -74,6 +74,8 @@ int main()
 		dcc += (0xfff&(adc_dma_buffer[2]));
 		startlinpos += (0xfff&(adc_dma_buffer[3]));
 		startphase += encoder_read();
+		
+		mfilter( 5*(0xfff&(adc_dma_buffer[0])) );				
 	}
 	
 	dca = dca >> 10;
