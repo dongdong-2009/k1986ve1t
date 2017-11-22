@@ -191,11 +191,12 @@ void TimerConfig(void)
 	TIMER4->CH2_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
 	TIMER4->CH3_DTG |= ((0xff&(150)) << 6); 					// delay DTG	
 
-	TIMER4->IE |= (0x0f << TIMER_IE_CCR_REF_EVENT_IE_OFFS); 	// прерывание по событию передний фронт на REF
-	//TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
-
+	//TIMER4->IE |= (0x0f << TIMER_IE_CCR_REF_EVENT_IE_OFFS); 	// прерывание по событию передний фронт на REF
+	
+	TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
+	NVIC_EnableIRQ(TIMER4_IRQn); 								// enable in nvic int from tim4
+	
 	TIMER4->CNTRL = TIMER_CNTRL_CNT_EN; 						// start count up
-	//NVIC_EnableIRQ(TIMER4_IRQn); 								// enable in nvic int from tim4
 }
 
 void adc_init()
@@ -237,18 +238,28 @@ void ssi_init()
 	SSP2->CR1 = SSP_CR1_SSE; // enable ssp
 }
 
-uint32_t b2g(uint32_t b)
+static inline uint32_t b2g(uint32_t b)
 {
 	return b ^ (b >> 1);
 }
 
-uint32_t g2b(uint32_t g)
+static inline uint32_t g2b(uint32_t g)
 {
 	uint32_t b = 0;
 	for(b = 0; g; (g = g >> 1)){
 		b = b ^ g;
 	}
 	return b;
+}
+
+static inline void encoder_start(void)
+{
+	SSP2->DR = 0x555; // start encoder request<---->
+}
+
+static inline int32_t encoder_read(void)
+{
+	return g2b((MAXENC-1) & (SSP2->DR));
 }
 
 void SystemInit(void)
@@ -302,10 +313,10 @@ int main()
 	SystemInit();
 
 	// init the regulators
-	reg_init(&dreg, 600, 600);
-	reg_init(&qreg, 600, 600);	
-	reg_init(&sreg, 0, 4000);
-	reg_init(&preg, 0, 10000);
+	reg_init(&dreg, KI_DQCUR, KP_DQCUR);
+	reg_init(&qreg, KI_DQCUR, KP_DQCUR);	
+	reg_init(&sreg, KI_SPD, KP_SPD);	
+	reg_init(&preg, KI_POS, KP_POS);	
 	
 	refpos = 0;
 	
@@ -338,10 +349,11 @@ int main()
 	startphase = 0;
 	for(i=0; i<1024; i++)
 	{
-		timer_wait();
-		
+		/*timer_wait();		
 		adc_dma_start();
 		SSP2->DR = 0x555; // start encoder request
+		*/
+		
 		adc_dma_wait();			
 		
 		dca += (0xfff&(adc_dma_buffer[1]));
@@ -368,20 +380,31 @@ int main()
 
 	while(1)
 	{
-		timer_wait();		
-		
-		//i = mfilter(5);
-	
-		PORTC->RXTX &= ~(1<<6);
+		/*timer_wait();				
 		adc_dma_start();	
 		SSP2->DR = 0x555; // start encoder request
+		*/
+		
 		adc_dma_wait();			
 		// data is ready now		
 		PORTC->RXTX |= (1<<6);
 		// get the reference analog signal for positoin regulator
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
 		//i = 5*(0xfff&(adc_dma_buffer[0]));
-		reflinpos = ((i+(i>>3))>>3)+580;		// scale 
+
+		//reflinpos = 343;
+#ifdef K3
+		reflinpos = 3681-((11*i)>>6);		// scale for k3 neg direction
+#endif
+
+#ifdef K1
+		reflinpos = ((11*i)>>6)+260;		// scale for k1 pos direction
+#endif		
+		
+		// for 1k
+		(reflinpos>MAXREFLINPOS) && (reflinpos=MAXREFLINPOS);
+		(reflinpos<MINREFLINPOS) && (reflinpos=MINREFLINPOS);
+
 		//DAC->DAC1_DATA = reflinpos;
 
 		// get the currents from ADC	
@@ -419,7 +442,7 @@ int main()
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
 			//DAC->DAC1_DATA = (refspeed>>6) + 2048;
-			DAC->DAC1_DATA = ((startphase-position)>>6) + 2048;
+			DAC->DAC1_DATA = ((startphase-position)>>4) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
@@ -460,7 +483,7 @@ int main()
 
 
 		// vector sync motor controller
-		phase = 1023&(phase+512+240);    // phase offset for correct rotor position
+		phase = 1023&(phase+PHASE_MARGIN);    // phase offset for correct rotor position
 		
 		// convert abc currents to dq
 		abc[0] = ia;
@@ -494,4 +517,15 @@ int main()
 		//DAC->DAC1_DATA = abc[0] + 2048;
 
 	}
+}
+
+void TIMER4_Handler(void)
+{
+	/* каждые 40 мкс ... */
+	TIMER4->STATUS = 0;
+	system_time ++;
+	/* запуск цикла DMA */
+	adc_dma_start();
+	/* запрос к энкодеру */
+	encoder_start();
 }

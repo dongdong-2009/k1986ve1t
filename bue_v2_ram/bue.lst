@@ -30,269 +30,275 @@ ARM GAS  dsp.s 			page 1
   23 0008 6340     		eor r3,r3,r4	@; r3=abs(v[0])
   24 000a 4468     		ldr r4,[r0,#4]	@; r4=v[1]
   25              		
-  26 000c 6D40     		eor r5,r5		@; r5 - SumAngle=0
-  27 000e 7640     		eor r6,r6		@; r6 - ns=0
+  26 000c 4040     		eor r0,r0		@; r0 - SumAngle=0
+  27 000e 7F40     		eor r7,r7		@; r7 - ns=0
   28              		
-  29              		
-  30              		
-  31              		
-  32              	
-  33              		
-  34              		
-  35              	/*loop:
-  36              		sub r0,r0,#1
-  37              		bpl loop
-  38              	*/	
-  39              	
-  40              		
-  41 0010 F0BD     		pop {r4,r5,r6,r7,pc}
-  42              	
-  43 0012 80000000 	AngTable:	.word 128, 76, 40, 20, 10, 5, 3, 1					@; angles for those tg =0.5,0.25 etc
-  43      4C000000 
-  43      28000000 
-  43      14000000 
-  43      0A000000 
-  44 0032 D4020000 	kc:			.word 724, 648, 628, 623, 623, 622, 622, 622 		@; mag correction cos(ang)
-  44      88020000 
-  44      74020000 
-  44      6F020000 
-  44      6F020000 
-  45              	
+  29 0010 1D1C     		mov r5,r3
+  30 0012 241C     		movs r4,r4
+  31 0014 01DD     		ble	ylesseq
+  32 0016 1B19     		add r3,r3,r4
+  33 0018 641B     		sub r4,r4,r5
+  34              	ylesseq:	
+  35 001a 1B1B     		sub r3,r3,r4
+  36 001c 6419     		add r4,r4,r5
+  37              	
+  38              		
+  39              		
+  40              	/*loop:
+  41              		sub r0,r0,#1
+  42              		bpl loop
+  43              	*/	
+  44              	
+  45              		
+  46 001e F0BD     		pop {r4,r5,r6,r7,pc}
+  47              	
+  48 0020 80000000 	AngTable:	.word 128, 76, 40, 20, 10, 5, 3, 1					@; angles for those tg =0.5,0.25 etc
+  48      4C000000 
+  48      28000000 
+  48      14000000 
+  48      0A000000 
+  49 0040 D4020000 	kc:			.word 724, 648, 628, 623, 623, 622, 622, 622 		@; mag correction cos(ang)
 ARM GAS  dsp.s 			page 2
 
 
-  46              	@; r0 - abc[]
-  47              	@; r1 - dq[]
-  48              	@; r2 - angle
-  49              	abc_to_dq:
-  50 0052 70B5     		push {r4,r5,r6,lr}
-  51              	
-  52 0054 484B     		ldr r3, =cos_tb 	
-  53 0056 9200     		lsl r2,#2
-  54              	
-  55              		@; calculate dq[0]
-  56 0058 9C58     		ldr r4,[r3,r2]			@; r4 = cos_tb[angle]
-  57 005a 0568     		ldr r5,[r0]				@; r5 = abc[0]	
-  58 005c 6C43     		mul r4,r4,r5			@; r4 = abc[0]*cos_tb[angle]
-  59              		
-  60 005e 314E     		ldr r6,P_4PI3
-  61 0060 B618     		add r6,r6,r2
-  62 0062 344D     		ldr r5,MASK1023
-  63 0064 3540     		and r5,r6
-  64 0066 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+4*512/3]
-  65 0068 4568     		ldr r5,[r0,#4]			@; r5 = abc[1]
-  66 006a 7543     		mul r5,r5,r6			@; r5 = abc[1]*cos_tb[angle+4*512/3]	
-  67 006c 6419     		add r4,r4,r5			@; r4 = abc[0]*cos_tb[angle] + abc[1]*cos_tb[angle+4*512/3]
-  68              		
-  69 006e 2E4E     		ldr r6,P_2PI3
-  70 0070 B618     		add r6,r6,r2
-  71 0072 304D     		ldr r5,MASK1023
-  72 0074 3540     		and r5,r6
-  73 0076 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+2*512/3]
-  74 0078 8568     		ldr r5,[r0,#8]			@; r5 = abc[2]
-  75 007a 7543     		mul r5,r5,r6			@; r5 = abc[2]*cos_tb[angle+2*512/3]	
-  76 007c 6419     		add r4,r4,r5			@; r4 = abc[0]*cos_tb[angle] + abc[1]*cos_tb[angle+4*512/3] + abc[2]*cos_tb[angle+2
-  77              		
-  78 007e A412     		asr r4,#10
-  79 0080 0C60     		str r4,[r1]				@; dq[0] = r4
-  80              		
-  81              		@; calculate dq[1]
-  82 0082 274E     		ldr r6,P_3PI2
-  83 0084 B618     		add r6,r6,r2
-  84 0086 2B4D     		ldr r5,MASK1023
-  85 0088 3540     		and r5,r6
-  86 008a 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle]
-  87 008c 0468     		ldr r4,[r0]				@; r4 = abc[0]
-  88 008e 7443     		mul r4,r4,r6			@; r4 = abc[0]*sin[angle]
-  89              		
-  90 0090 264E     		ldr r6,P_4PI33PI2
-  91 0092 B618     		add r6,r6,r2
-  92 0094 274D     		ldr r5,MASK1023
-  93 0096 3540     		and r5,r6
-  94 0098 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle+4*512/3]
-  95 009a 4568     		ldr r5,[r0,#4]			@; r5 = abc[1]
-  96 009c 7543     		mul r5,r5,r6			@; r5 = abc[1]*sin[angle+4*512/3]	
-  97 009e 6419     		add r4,r4,r5			@; r4 = abc[0]*sin[angle] + abc[1]*sin[angle+4*512/3]
-  98              		
-  99 00a0 234E     		ldr r6,P_2PI33PI2
- 100 00a2 B618     		add r6,r6,r2
- 101 00a4 234D     		ldr r5,MASK1023
- 102 00a6 3540     		and r5,r6
+  49      88020000 
+  49      74020000 
+  49      6F020000 
+  49      6F020000 
+  50              	
+  51              	@; r0 - abc[]
+  52              	@; r1 - dq[]
+  53              	@; r2 - angle
+  54              	abc_to_dq:
+  55 0060 70B5     		push {r4,r5,r6,lr}
+  56              	
+  57 0062 494B     		ldr r3, =cos_tb 	
+  58 0064 9200     		lsl r2,#2
+  59              	
+  60              		@; calculate dq[0]
+  61 0066 9C58     		ldr r4,[r3,r2]			@; r4 = cos_tb[angle]
+  62 0068 0568     		ldr r5,[r0]				@; r5 = abc[0]	
+  63 006a 6C43     		mul r4,r4,r5			@; r4 = abc[0]*cos_tb[angle]
+  64              		
+  65 006c 314E     		ldr r6,P_4PI3
+  66 006e B618     		add r6,r6,r2
+  67 0070 344D     		ldr r5,MASK1023
+  68 0072 3540     		and r5,r6
+  69 0074 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+4*512/3]
+  70 0076 4568     		ldr r5,[r0,#4]			@; r5 = abc[1]
+  71 0078 7543     		mul r5,r5,r6			@; r5 = abc[1]*cos_tb[angle+4*512/3]	
+  72 007a 6419     		add r4,r4,r5			@; r4 = abc[0]*cos_tb[angle] + abc[1]*cos_tb[angle+4*512/3]
+  73              		
+  74 007c 2E4E     		ldr r6,P_2PI3
+  75 007e B618     		add r6,r6,r2
+  76 0080 304D     		ldr r5,MASK1023
+  77 0082 3540     		and r5,r6
+  78 0084 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+2*512/3]
+  79 0086 8568     		ldr r5,[r0,#8]			@; r5 = abc[2]
+  80 0088 7543     		mul r5,r5,r6			@; r5 = abc[2]*cos_tb[angle+2*512/3]	
+  81 008a 6419     		add r4,r4,r5			@; r4 = abc[0]*cos_tb[angle] + abc[1]*cos_tb[angle+4*512/3] + abc[2]*cos_tb[angle+2
+  82              		
+  83 008c A412     		asr r4,#10
+  84 008e 0C60     		str r4,[r1]				@; dq[0] = r4
+  85              		
+  86              		@; calculate dq[1]
+  87 0090 274E     		ldr r6,P_3PI2
+  88 0092 B618     		add r6,r6,r2
+  89 0094 2B4D     		ldr r5,MASK1023
+  90 0096 3540     		and r5,r6
+  91 0098 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle]
+  92 009a 0468     		ldr r4,[r0]				@; r4 = abc[0]
+  93 009c 7443     		mul r4,r4,r6			@; r4 = abc[0]*sin[angle]
+  94              		
+  95 009e 274E     		ldr r6,P_4PI33PI2
+  96 00a0 B618     		add r6,r6,r2
+  97 00a2 284D     		ldr r5,MASK1023
+  98 00a4 3540     		and r5,r6
+  99 00a6 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle+4*512/3]
+ 100 00a8 4568     		ldr r5,[r0,#4]			@; r5 = abc[1]
+ 101 00aa 7543     		mul r5,r5,r6			@; r5 = abc[1]*sin[angle+4*512/3]	
+ 102 00ac 6419     		add r4,r4,r5			@; r4 = abc[0]*sin[angle] + abc[1]*sin[angle+4*512/3]
 ARM GAS  dsp.s 			page 3
 
 
- 103 00a8 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle+2*512/3]
- 104 00aa 8568     		ldr r5,[r0,#8]			@; r5 = abc[2]
- 105 00ac 7543     		mul r5,r5,r6			@; r5 = abc[2]*sin[angle+2*512/3]	
- 106 00ae 6419     		add r4,r4,r5			@; r4 = abc[0]*sin[angle] + abc[1]*sin[angle+4*512/3] + abc[2]*sin[angle+2*512/3]
- 107              		
- 108 00b0 A412     		asr r4,#10
- 109 00b2 7640     		eor r6,r6
- 110 00b4 361B     		sub r6,r4
- 111 00b6 4E60     		str r6,[r1,#4]			@; dq[1] = r4		
+ 103              		
+ 104 00ae 244E     		ldr r6,P_2PI33PI2
+ 105 00b0 B618     		add r6,r6,r2
+ 106 00b2 244D     		ldr r5,MASK1023
+ 107 00b4 3540     		and r5,r6
+ 108 00b6 5E59     		ldr r6,[r3,r5]			@; r6 = sin[angle+2*512/3]
+ 109 00b8 8568     		ldr r5,[r0,#8]			@; r5 = abc[2]
+ 110 00ba 7543     		mul r5,r5,r6			@; r5 = abc[2]*sin[angle+2*512/3]	
+ 111 00bc 6419     		add r4,r4,r5			@; r4 = abc[0]*sin[angle] + abc[1]*sin[angle+4*512/3] + abc[2]*sin[angle+2*512/3]
  112              		
- 113 00b8 70BD     		pop {r4,r5,r6,pc}
- 114              	
- 115              	
- 116              	@; r0 - abc[]
- 117              	@; r1 - dq[]
- 118              	@; r2 - angle
- 119              	dq_to_abc:
- 120 00ba 70B5     		push {r4,r5,r6,lr}
- 121              	
- 122 00bc 2E4B     		ldr r3, =cos_tb 	
- 123 00be 9200     		lsl r2,#2
- 124              	
- 125              		@ abc[0]
- 126 00c0 9C58     		ldr r4,[r3,r2]			@; r4 = cos_tb[angle]	
- 127 00c2 0D68     		ldr r5,[r1]				@; r5 = dq[0]	
- 128 00c4 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle]
- 129              			
- 130 00c6 164E     		ldr r6,P_3PI2
- 131 00c8 B618     		add r6,r6,r2
- 132 00ca 1A4D     		ldr r5,MASK1023
- 133 00cc 3540     		and r5,r6
- 134 00ce 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+3*512/2]
- 135 00d0 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
- 136 00d2 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+3*512/2]
- 137              	
- 138 00d4 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]	
- 139 00d6 2415     		asr r4,#20				
- 140 00d8 0460     		str r4,[r0]				@; abc[0] = (dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]) >> 20
- 141              			
- 142              		@ abc[1]
- 143 00da 124E     		ldr r6,P_4PI3
- 144 00dc B618     		add r6,r6,r2
- 145 00de 154D     		ldr r5,MASK1023
- 146 00e0 3540     		and r5,r6
- 147 00e2 5C59     		ldr r4,[r3,r5]			@; r4 = cos_tb[angle+4*512/3]
- 148 00e4 0D68     		ldr r5,[r1]				@; r5 = dq[0]
- 149 00e6 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3]
- 150              		
- 151 00e8 104E     		ldr r6,P_4PI33PI2
- 152 00ea B618     		add r6,r6,r2
- 153 00ec 114D     		ldr r5,MASK1023
- 154 00ee 3540     		and r5,r6
- 155 00f0 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+4*512/3+3*512/2]
- 156 00f2 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
- 157 00f4 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+4*512/3+3*512/2]
- 158              		
- 159 00f6 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3] - dq[1]*cos_tb[angle+4*512/3+3*512/2]	
+ 113 00be A412     		asr r4,#10
+ 114 00c0 7640     		eor r6,r6
+ 115 00c2 361B     		sub r6,r4
+ 116 00c4 4E60     		str r6,[r1,#4]			@; dq[1] = r4		
+ 117              		
+ 118 00c6 70BD     		pop {r4,r5,r6,pc}
+ 119              	
+ 120              	
+ 121              	@; r0 - abc[]
+ 122              	@; r1 - dq[]
+ 123              	@; r2 - angle
+ 124              	dq_to_abc:
+ 125 00c8 70B5     		push {r4,r5,r6,lr}
+ 126              	
+ 127 00ca 2F4B     		ldr r3, =cos_tb 	
+ 128 00cc 9200     		lsl r2,#2
+ 129              	
+ 130              		@ abc[0]
+ 131 00ce 9C58     		ldr r4,[r3,r2]			@; r4 = cos_tb[angle]	
+ 132 00d0 0D68     		ldr r5,[r1]				@; r5 = dq[0]	
+ 133 00d2 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle]
+ 134              			
+ 135 00d4 164E     		ldr r6,P_3PI2
+ 136 00d6 B618     		add r6,r6,r2
+ 137 00d8 1A4D     		ldr r5,MASK1023
+ 138 00da 3540     		and r5,r6
+ 139 00dc 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+3*512/2]
+ 140 00de 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
+ 141 00e0 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+3*512/2]
+ 142              	
+ 143 00e2 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]	
+ 144 00e4 2415     		asr r4,#20				
+ 145 00e6 0460     		str r4,[r0]				@; abc[0] = (dq[0]*cos_tb[angle] - dq[1]*cos_tb[angle+3*512/2]) >> 20
+ 146              			
+ 147              		@ abc[1]
+ 148 00e8 124E     		ldr r6,P_4PI3
+ 149 00ea B618     		add r6,r6,r2
+ 150 00ec 154D     		ldr r5,MASK1023
+ 151 00ee 3540     		and r5,r6
+ 152 00f0 5C59     		ldr r4,[r3,r5]			@; r4 = cos_tb[angle+4*512/3]
+ 153 00f2 0D68     		ldr r5,[r1]				@; r5 = dq[0]
+ 154 00f4 6C43     		mul r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3]
+ 155              		
+ 156 00f6 114E     		ldr r6,P_4PI33PI2
+ 157 00f8 B618     		add r6,r6,r2
+ 158 00fa 124D     		ldr r5,MASK1023
+ 159 00fc 3540     		and r5,r6
 ARM GAS  dsp.s 			page 4
 
 
- 160 00f8 2415     		asr r4,#20				
- 161 00fa 4460     		str r4,[r0,#4]	
- 162              		
- 163              		@ abc[2]
- 164 00fc 0A4E     		ldr r6,P_2PI3
- 165 00fe B618     		add r6,r6,r2
- 166 0100 0C4D     		ldr r5,MASK1023
- 167 0102 3540     		and r5,r6
- 168 0104 5C59     		ldr r4,[r3,r5]	
- 169 0106 0D68     		ldr r5,[r1]		
- 170 0108 6C43     		mul r4,r4,r5	
- 171              		
- 172 010a 094E     		ldr r6,P_2PI33PI2
- 173 010c B618     		add r6,r6,r2
- 174 010e 094D     		ldr r5,MASK1023
- 175 0110 3540     		and r5,r6
- 176 0112 5E59     		ldr r6,[r3,r5]	
- 177 0114 4D68     		ldr r5,[r1,#4]	
- 178 0116 7543     		mul r5,r5,r6	
- 179              		
- 180 0118 641B     		sub r4,r4,r5		
- 181 011a 2415     		asr r4,#20				
- 182 011c 8460     		str r4,[r0,#8]		
- 183              		
- 184 011e 70BD     		pop {r4,r5,r6,pc}
- 185              	
- 186              	
- 187              	.align 4
- 188 0120 000C0000 	P_3PI2:		.word (4*3*512)/2
- 189 0124 AA0A0000 	P_4PI3:		.word 4*4*512/3
- 190 0128 55050000 	P_2PI3:		.word 4*2*512/3
- 191 012c AA160000 	P_4PI33PI2:	.word 4*4*512/3+4*3*512/2
- 192 0130 55110000 	P_2PI33PI2:	.word 4*2*512/3+4*3*512/2
- 193 0134 FC0F0000 	MASK1023:   .word 4*1023
- 194              	
- 195              	mfilter:
- 196              							@; r0=x
- 197 0138 1049     		ldr r1, =flt_idx
- 198 013a 0A68     		ldr r2, [r1] 
- 199 013c 0132     		add r2,r2,#1
- 200 013e 1F23     		mov r3,#(32-1)
- 201 0140 1A40     		and r2,r3	 		@; r2 = i
- 202 0142 0A60     		str r2, [r1]		
- 203              			
- 204 0144 0E49     		ldr r1, =flt_buf
- 205 0146 9200     		lsl r2,#2
- 206 0148 8918     		add r1, r1, r2		 @; r1=&b[i]	
- 207 014a 0A68     		ldr r2,[r1]			 @; r2=b[i](old)
- 208 014c 0860     		str r0,[r1]			 @; b[i](new)=x		
- 209 014e 801A     		sub r0,r0,r2		 @; r0=x-b[i]				
- 210              	
- 211 0150 0C49     		ldr r1, =flt_acm
- 212 0152 0A68     		ldr r2,[r1]
- 213 0154 8018     		add r0,r0,r2		 @ r0 = a+x-b[i](old)	
- 214 0156 0860     		str r0,[r1]
- 215 0158 4011     		asr r0,r0,#5		 @ r0 = ( a+x-b[i](old) )/32
- 216              		
+ 160 00fe 5E59     		ldr r6,[r3,r5]			@; r6 = cos_tb[angle+4*512/3+3*512/2]
+ 161 0100 4D68     		ldr r5,[r1,#4]			@; r5 = dq[1]
+ 162 0102 7543     		mul r5,r5,r6			@; r5 = dq[1]*cos_tb[angle+4*512/3+3*512/2]
+ 163              		
+ 164 0104 641B     		sub r4,r4,r5			@; r4 = dq[0]*cos_tb[angle+4*512/3] - dq[1]*cos_tb[angle+4*512/3+3*512/2]	
+ 165 0106 2415     		asr r4,#20				
+ 166 0108 4460     		str r4,[r0,#4]	
+ 167              		
+ 168              		@ abc[2]
+ 169 010a 0B4E     		ldr r6,P_2PI3
+ 170 010c B618     		add r6,r6,r2
+ 171 010e 0D4D     		ldr r5,MASK1023
+ 172 0110 3540     		and r5,r6
+ 173 0112 5C59     		ldr r4,[r3,r5]	
+ 174 0114 0D68     		ldr r5,[r1]		
+ 175 0116 6C43     		mul r4,r4,r5	
+ 176              		
+ 177 0118 094E     		ldr r6,P_2PI33PI2
+ 178 011a B618     		add r6,r6,r2
+ 179 011c 094D     		ldr r5,MASK1023
+ 180 011e 3540     		and r5,r6
+ 181 0120 5E59     		ldr r6,[r3,r5]	
+ 182 0122 4D68     		ldr r5,[r1,#4]	
+ 183 0124 7543     		mul r5,r5,r6	
+ 184              		
+ 185 0126 641B     		sub r4,r4,r5		
+ 186 0128 2415     		asr r4,#20				
+ 187 012a 8460     		str r4,[r0,#8]		
+ 188              		
+ 189 012c 70BD     		pop {r4,r5,r6,pc}
+ 190              	
+ 191              	
+ 192 012e C046     	.align 4
+ 193 0130 000C0000 	P_3PI2:		.word (4*3*512)/2
+ 194 0134 AA0A0000 	P_4PI3:		.word 4*4*512/3
+ 195 0138 55050000 	P_2PI3:		.word 4*2*512/3
+ 196 013c AA160000 	P_4PI33PI2:	.word 4*4*512/3+4*3*512/2
+ 197 0140 55110000 	P_2PI33PI2:	.word 4*2*512/3+4*3*512/2
+ 198 0144 FC0F0000 	MASK1023:   .word 4*1023
+ 199              	
+ 200              	mfilter:
+ 201              							@; r0=x
+ 202 0148 1049     		ldr r1, =flt_idx
+ 203 014a 0A68     		ldr r2, [r1] 
+ 204 014c 0132     		add r2,r2,#1
+ 205 014e 1F23     		mov r3,#(32-1)
+ 206 0150 1A40     		and r2,r3	 		@; r2 = i
+ 207 0152 0A60     		str r2, [r1]		
+ 208              			
+ 209 0154 0E49     		ldr r1, =flt_buf
+ 210 0156 9200     		lsl r2,#2
+ 211 0158 8918     		add r1, r1, r2		 @; r1=&b[i]	
+ 212 015a 0A68     		ldr r2,[r1]			 @; r2=b[i](old)
+ 213 015c 0860     		str r0,[r1]			 @; b[i](new)=x		
+ 214 015e 801A     		sub r0,r0,r2		 @; r0=x-b[i]				
+ 215              	
+ 216 0160 0C49     		ldr r1, =flt_acm
 ARM GAS  dsp.s 			page 5
 
 
- 217 015a F746     		mov pc,lr
- 218              	
- 219              	dot3:
- 220 015c 80B5     		push {r7,lr}
+ 217 0162 0A68     		ldr r2,[r1]
+ 218 0164 8018     		add r0,r0,r2		 @ r0 = a+x-b[i](old)	
+ 219 0166 0860     		str r0,[r1]
+ 220 0168 4011     		asr r0,r0,#5		 @ r0 = ( a+x-b[i](old) )/32
  221              		
- 222 015e 0268     		ldr r2,[r0,#0]
- 223 0160 0B68     		ldr r3,[r1,#0]
- 224 0162 5A43     		mul r2,r2,r3
- 225 0164 171C     		mov r7,r2
+ 222 016a F746     		mov pc,lr
+ 223              	
+ 224              	dot3:
+ 225 016c 80B5     		push {r7,lr}
  226              		
- 227 0166 4268     		ldr r2,[r0,#4]
- 228 0168 4B68     		ldr r3,[r1,#4]
- 229 016a 5A43     		mul r2,r2,r3	
- 230 016c BF18     		add r7,r7,r2
+ 227 016e 0268     		ldr r2,[r0,#0]
+ 228 0170 0B68     		ldr r3,[r1,#0]
+ 229 0172 5A43     		mul r2,r2,r3
+ 230 0174 171C     		mov r7,r2
  231              		
- 232 016e 8068     		ldr r0,[r0,#8]
- 233 0170 8B68     		ldr r3,[r1,#8]
- 234 0172 5843     		mul r0,r0,r3	
- 235 0174 3818     		add r0,r7,r0	
+ 232 0176 4268     		ldr r2,[r0,#4]
+ 233 0178 4B68     		ldr r3,[r1,#4]
+ 234 017a 5A43     		mul r2,r2,r3	
+ 235 017c BF18     		add r7,r7,r2
  236              		
- 237 0176 80BD0000 		pop {r7,pc}
- 237      00000400 
- 237      00000800 
- 237      00000000 
- 237      0000
+ 237 017e 8068     		ldr r0,[r0,#8]
+ 238 0180 8B68     		ldr r3,[r1,#8]
+ 239 0182 5843     		mul r0,r0,r3	
+ 240 0184 3818     		add r0,r7,r0	
+ 241              		
+ 242 0186 80BD0000 		pop {r7,pc}
+ 242      00000400 
+ 242      00000800 
+ 242      00000000 
+ 242      0000
 ARM GAS  dsp.s 			page 6
 
 
 DEFINED SYMBOLS
-               dsp.s:219    .text:0000015c dot3
-               dsp.s:195    .text:00000138 mfilter
-               dsp.s:119    .text:000000ba dq_to_abc
-               dsp.s:49     .text:00000052 abc_to_dq
+               dsp.s:224    .text:0000016c dot3
+               dsp.s:200    .text:00000148 mfilter
+               dsp.s:124    .text:000000c8 dq_to_abc
+               dsp.s:54     .text:00000060 abc_to_dq
                dsp.s:17     .text:00000000 asm_test_loop
                dsp.s:8      .data:00000000 flt_acm
                dsp.s:9      .data:00000004 flt_idx
                dsp.s:10     .data:00000008 flt_buf
                dsp.s:10     .data:00000008 $d
                dsp.s:18     .text:00000000 $t
-               dsp.s:43     .text:00000012 AngTable
-               dsp.s:43     .text:00000012 $d
-               dsp.s:44     .text:00000032 kc
-               dsp.s:50     .text:00000052 $t
-               dsp.s:189    .text:00000124 P_4PI3
-               dsp.s:193    .text:00000134 MASK1023
-               dsp.s:190    .text:00000128 P_2PI3
-               dsp.s:188    .text:00000120 P_3PI2
-               dsp.s:191    .text:0000012c P_4PI33PI2
-               dsp.s:192    .text:00000130 P_2PI33PI2
-               dsp.s:188    .text:00000120 $d
-               dsp.s:197    .text:00000138 $t
-               dsp.s:237    .text:00000178 $d
+               dsp.s:34     .text:0000001a ylesseq
+               dsp.s:48     .text:00000020 AngTable
+               dsp.s:48     .text:00000020 $d
+               dsp.s:49     .text:00000040 kc
+               dsp.s:55     .text:00000060 $t
+               dsp.s:194    .text:00000134 P_4PI3
+               dsp.s:198    .text:00000144 MASK1023
+               dsp.s:195    .text:00000138 P_2PI3
+               dsp.s:193    .text:00000130 P_3PI2
+               dsp.s:196    .text:0000013c P_4PI33PI2
+               dsp.s:197    .text:00000140 P_2PI33PI2
+               dsp.s:193    .text:00000130 $d
+               dsp.s:202    .text:00000148 $t
+               dsp.s:242    .text:00000188 $d
 
 UNDEFINED SYMBOLS
 cos_tb

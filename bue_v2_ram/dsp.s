@@ -23,12 +23,17 @@ asm_test_loop:
 	eor r3,r3,r4	@; r3=abs(v[0])
 	ldr r4,[r0,#4]	@; r4=v[1]
 	
-	eor r5,r5		@; r5 - SumAngle=0
-	eor r6,r6		@; r6 - ns=0
+	eor r0,r0		@; r0 - SumAngle=0
+	eor r7,r7		@; r7 - ns=0
 	
-	
-	
-	
+	mov r5,r3
+	movs r4,r4
+	ble	ylesseq
+	add r3,r3,r4
+	sub r4,r4,r5
+ylesseq:	
+	sub r3,r3,r4
+	add r4,r4,r5
 
 	
 	

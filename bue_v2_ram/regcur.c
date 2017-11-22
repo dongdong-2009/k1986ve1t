@@ -130,15 +130,20 @@ int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase)
 	int32_t ang;
 	cord_atan(dq, &ang, &mag);
 	
-	mag = mag >> 10;	
+	mag = mag >> 10;
+	int32_t phi = 1023&(phase + ang);
+	
 	if(mag > 500) {
 		mag = 500;
 		fs = 1;
 	}
 	else fs = 0;
-	
-	dq_to_abc(abc, dq, phase);
-	
+
+	//dq_to_abc(abc, dq, phase);
+	abc[0] = mag*mycos( 1023&(phi) ) >> 10;
+	abc[1] = -mag*mycos( 1023&(MY_PI/3+phi) ) >> 10;
+	abc[2] = -mag*mycos( 1023&(2*MY_PI+MY_PI/3-phi) ) >> 10;
+
 	return fs;	
 }
 

@@ -7,6 +7,9 @@ int32_t startlinpos = 0;
 int32_t startphase = 0;
 int32_t linpos = 0;
 
+int32_t phof = 0;
+int32_t Vrefpos = 0;
+
 struct pi_reg_state{
 	int32_t ki;
 	int32_t kp;
@@ -302,10 +305,10 @@ int main()
 	SystemInit();
 
 	// init the regulators
-	reg_init(&dreg, 600, 600);
-	reg_init(&qreg, 600, 600);	
+	reg_init(&dreg, 200, 600);
+	reg_init(&qreg, 200, 600);	
 	reg_init(&sreg, 0, 4000);
-	reg_init(&preg, 0, 10000);
+	reg_init(&preg, 0, 6000);
 	
 	refpos = 0;
 	
@@ -332,6 +335,7 @@ int main()
 */
 
 	// do some init actions	
+	phof = 0;
 	dca = 0;
 	dcc = 0;
 	startlinpos = 0;
@@ -360,9 +364,9 @@ int main()
 
 /*
 	while(1){
-		TIMER4->CCR1 = 200+512;
-		TIMER4->CCR2 = 200+512;
-		TIMER4->CCR3 = 0+512;
+		TIMER4->CCR1 = 512;
+		TIMER4->CCR2 = 512;
+		TIMER4->CCR3 = 512;
 	}
 */
 
@@ -380,8 +384,19 @@ int main()
 		PORTC->RXTX |= (1<<6);
 		// get the reference analog signal for positoin regulator
 		i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
+		Vrefpos = i;
 		//i = 5*(0xfff&(adc_dma_buffer[0]));
-		reflinpos = ((i+(i>>3))>>3)+580;		// scale 
+		//reflinpos = ((i+(i>>3))>>3)+580;		// scale for k1
+		//reflinpos = ((i+(i>>2))>>3)+240;		// scale for k3 pos direction		
+		//reflinpos = 3640-((i+(i>>2))>>3);		// scale for k3 neg direction
+		
+		//reflinpos = 343;
+		//reflinpos = 3681-((11*i)>>6);		// scale for k3 neg direction
+		reflinpos = ((11*i)>>6)+260;		// scale for k3 pos direction
+		
+		(reflinpos>3200) && (reflinpos=3200);
+		(reflinpos<500) && (reflinpos=500);
+
 		//DAC->DAC1_DATA = reflinpos;
 
 		// get the currents from ADC	
@@ -397,7 +412,7 @@ int main()
 		code = g2b((MAXENC-1) & (SSP2->DR));	
 		// get the motor electrical angle (x4 mechanical angle)
 		phase = code & (1024-1);								
-		//DAC->DAC1_DATA = code;		
+		DAC->DAC1_DATA = code;		
 		
 		tcnt++;
 				
@@ -409,17 +424,16 @@ int main()
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>12;
 			
-			//refspeed = -2000;
-			
+			//refspeed = -5000;
+
 			reg_update(&sreg, (refspeed - speed), 0);
 			
 			qref = sreg.y>>12;
-			
 			if(qref > MAXQCURR) qref = MAXQCURR;
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
 			//DAC->DAC1_DATA = (refspeed>>6) + 2048;
-			DAC->DAC1_DATA = ((startphase-position)>>6) + 2048;
+			//DAC->DAC1_DATA = ((startphase-position)>>6) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
@@ -428,18 +442,26 @@ int main()
 			
 		}
 
+/*
+		// test q
+		if( (0x7fff&tcnt) == 0){
+			if(qref == 100) qref = -100; // 100 is abt 1A
+			else qref = 100;
+		}
+*/		
+
 
 /*
  		// current regulator debug
 		if( (0x7fff&tcnt) == 0){
-			if(qref == 0) qref = -500; // 100 is abt 1A
-			else qref = 0;
+			if(qref == 200) qref = -200; // 100 is abt 1A
+			else qref = 200;
 		}
 
 		ed = qref-ib;
 		reg_update(&dreg, ed , fsat);
 		
-		vd = dreg.y>>10;
+		vd = dreg.y>>12;
 		fsat = 0;
 		if(vd > 511){
 			fsat = 1;
@@ -460,7 +482,8 @@ int main()
 
 
 		// vector sync motor controller
-		phase = 1023&(phase+512+240);    // phase offset for correct rotor position
+		//phase = 1023&(phase+512+320);    // phase offset for correct rotor position (for motor 1K)
+		phase = 1023&(phase+250);    // phase offset for correct rotor position (for motor 3K)
 		
 		// convert abc currents to dq
 		abc[0] = ia;
@@ -472,23 +495,26 @@ int main()
 		ed = 0 - dq[0];
 		eq = qref - dq[1];
 		
+		//debug_signal(dq[1]<<2);
+		//debug_signal(fsat<<8);
+		
 		// regulators do its work
 		reg_update(&dreg, ed , fsat);
 		reg_update(&qreg, eq , fsat);			
-		
+
+
 		// pwm modulation
 		dq[0] = dreg.y>>2;
 		dq[1] = qreg.y>>2;
-		
-		fsat = svpwm(abc, dq, phase);
-		//fsat = sinpwm(abc, dq, phase);		
-		
-	
+
+		//fsat = svpwm(abc, dq, phase);
+		fsat = sinpwm(abc, dq, phase);				
+
 		// set the pwm controller
 		TIMER4->CCR1 = (abc[0])+512;
 		TIMER4->CCR2 = (abc[1])+512;
 		TIMER4->CCR3 = (abc[2])+512;
-		
+
 		//DAC->DAC1_DATA = ed + 2048;
 		//DAC->DAC1_DATA = phase;
 		//DAC->DAC1_DATA = abc[0] + 2048;
