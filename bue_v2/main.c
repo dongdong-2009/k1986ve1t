@@ -26,6 +26,8 @@ extern int32_t svpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t sinpwm(int32_t *abc, int32_t *dq, int32_t phase);
 extern int32_t get_speed(int32_t enc, int32_t *pos);
 extern int32_t mfilter(int32_t x);
+extern int32_t rfilter1(int32_t x);
+extern int32_t rfilter2(int32_t x);
 
 extern void adc_dma_init(void);
 extern void adc_dma_start(void);
@@ -378,6 +380,31 @@ int main()
 	}
 */
 
+/*
+	while(1)
+	{
+
+		adc_dma_wait();		
+			
+		// data is ready now		
+		// get the reference analog signal for positoin regulator
+		//i = mfilter( 5*(0xfff&(adc_dma_buffer[0])) );
+		//i = 5*(0xfff&(adc_dma_buffer[0]));
+		//Vrefpos = i;
+		//reflinpos = 3681-((11*i)>>6);
+		reflinpos = 2048-(0xfff&(adc_dma_buffer[0]));
+		
+		//(reflinpos>3200) && (reflinpos=3200);
+		//(reflinpos<500) && (reflinpos=500);
+		
+		tcnt++;				
+		if( (0x7 & tcnt) == 0){			
+			// 3kHz
+			DAC->DAC1_DATA = rfilter1(reflinpos)+2048;
+			//DAC->DAC1_DATA = reflinpos+2048;
+		}		
+	}
+*/
 	while(1)
 	{
 		/*timer_wait();				
@@ -401,7 +428,6 @@ int main()
 		reflinpos = ((11*i)>>6)+260;		// scale for k1 pos direction
 #endif		
 		
-		// for 1k
 		(reflinpos>MAXREFLINPOS) && (reflinpos=MAXREFLINPOS);
 		(reflinpos<MINREFLINPOS) && (reflinpos=MINREFLINPOS);
 
@@ -428,6 +454,10 @@ int main()
 			// 3kHz
 			speed = get_speed(code, &position);		
 
+			reflinpos = rfilter1(reflinpos);
+			reflinpos = rfilter2(reflinpos);
+			refpos = (reflinpos - startlinpos)*49;			
+
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
 			refspeed = preg.y>>12;
@@ -447,8 +477,9 @@ int main()
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
 			
-			refpos = (reflinpos - startlinpos)*49;
-			
+			//refpos = (reflinpos - startlinpos)*49;
+			//refpos = (rfilter1(reflinpos) - startlinpos)*49;						
+						
 		}
 
 

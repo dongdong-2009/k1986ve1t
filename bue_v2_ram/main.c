@@ -355,7 +355,8 @@ int main()
 		startlinpos += (0xfff&(adc_dma_buffer[3]));
 		startphase += g2b((MAXENC-1) & (SSP2->DR));
 		
-		mfilter( 5*(0xfff&(adc_dma_buffer[0])) );		
+		mfilter( 5*(0xfff&(adc_dma_buffer[0])) );	
+		rfilter1(0);
 	}
 	
 	dca = dca >> 10;
@@ -372,7 +373,7 @@ int main()
 	}
 */
 
-
+/*
 	while(1)
 	{
 		timer_wait();		
@@ -398,6 +399,7 @@ int main()
 			//DAC->DAC1_DATA = reflinpos+2048;
 		}		
 	}
+*/
 
 	while(1)
 	{
@@ -421,7 +423,7 @@ int main()
 		
 		//reflinpos = 343;
 		//reflinpos = 3681-((11*i)>>6);		// scale for k3 neg direction
-		reflinpos = ((11*i)>>6)+260;		// scale for k3 pos direction
+		reflinpos = ((11*i)>>6)+260;		// scale for k1 pos direction
 		
 		(reflinpos>3200) && (reflinpos=3200);
 		(reflinpos<500) && (reflinpos=500);
@@ -441,13 +443,18 @@ int main()
 		code = g2b((MAXENC-1) & (SSP2->DR));	
 		// get the motor electrical angle (x4 mechanical angle)
 		phase = code & (1024-1);								
-		DAC->DAC1_DATA = code;		
+		//DAC->DAC1_DATA = code;		
 		
 		tcnt++;
-				
+
 		if( (0x7 & tcnt) == 0){			
 			// 3kHz
 			speed = get_speed(code, &position);		
+
+			reflinpos = rfilter1(reflinpos);
+			reflinpos = rfilter2(reflinpos);
+			refpos = (reflinpos - startlinpos)*49;			
+			//DAC->DAC1_DATA = rfilter1(reflinpos);
 
 			reg_update(&preg, (refpos - position), 0);
 			//reg_update(&preg, (reflinpos - linpos), 0);
@@ -462,13 +469,12 @@ int main()
 			if(qref < -MAXQCURR) qref = -MAXQCURR;
 			
 			//DAC->DAC1_DATA = (refspeed>>6) + 2048;
-			//DAC->DAC1_DATA = ((startphase-position)>>6) + 2048;
+			DAC->DAC1_DATA = ((startphase-position)>>4) + 2048;
 			//DAC->DAC1_DATA = qref + 2048;
 			//DAC->DAC1_DATA = ((reflinpos - linpos)>>1) + 2048;
 			//DAC->DAC1_DATA = linpos;			
-			
-			refpos = (reflinpos - startlinpos)*49;
-			
+
+			//refpos = (reflinpos - startlinpos)*49;
 		}
 
 /*
@@ -511,8 +517,8 @@ int main()
 
 
 		// vector sync motor controller
-		//phase = 1023&(phase+512+320);    // phase offset for correct rotor position (for motor 1K)
-		phase = 1023&(phase+250);    // phase offset for correct rotor position (for motor 3K)
+		phase = 1023&(phase+512+320);    // phase offset for correct rotor position (for motor 1K)
+		//phase = 1023&(phase+250);    // phase offset for correct rotor position (for motor 3K)
 		
 		// convert abc currents to dq
 		abc[0] = ia;

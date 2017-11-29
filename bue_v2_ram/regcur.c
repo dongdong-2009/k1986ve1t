@@ -361,30 +361,32 @@ int32_t c_mfilter(int32_t x)
 	return a>>5;
 }
 
+
 int32_t rfilter1(int32_t x)
 {
 	static int32_t x1=0;
 	static int32_t x2=0;
 	static int32_t y1=0;
-	static int32_t y2=0;
+	static int32_t y2=0;	
 
-	int32_t y = (-RF_A12*y1 - RF_A13*y2 + RF_B11*x + RF_B12*x1 + RF_B13*x2) >> RF_SHIFT;
+	int32_t y = (-RF_A12*y1 - RF_A13*y2 + RF_B11*x + RF_B12*x1 + RF_B13*x2) >> RF_SHIFTA;
 	x2 = x1; x1 = x;
 	y2 = y1; y1 = y;
 	
-	return y;
+	return y >> (RF_SHIFTB - RF_SHIFTA);
 }
+
 
 int32_t rfilter2(int32_t x)
 {
 	static int32_t x1=0;
 	static int32_t x2=0;
 	static int32_t y1=0;
-	static int32_t y2=0;
+	static int32_t y2=0;	
 
-	int32_t y = (-RF_A22*y1 - RF_A23*y2 + RF_B21*x + RF_B22*x1 + RF_B23*x2) >> RF_SHIFT;
+	int32_t y = (-RF_A22*y1 - RF_A23*y2 + RF_B21*x + RF_B22*x1 + RF_B23*x2) >> RF_SHIFTA;
 	x2 = x1; x1 = x;
 	y2 = y1; y1 = y;
 	
-	return y;
+	return y >> (RF_SHIFTB - RF_SHIFTA);
 }

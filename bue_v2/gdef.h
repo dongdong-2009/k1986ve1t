@@ -1,7 +1,7 @@
 #ifndef _GDEF_H
 #define _GDEF_H
 
-#define K1
+#define K3
 
 #define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
 #define EEPROM_DEL 4
