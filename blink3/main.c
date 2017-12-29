@@ -40,9 +40,9 @@ void PortConfig()
 	
 	PORTD->FUNC = 0x00000000;  	/* mode is port */
 	PORTD->RXTX = 0x0000;	     	/* clear the out */
-	PORTD->OE = 0x7F80;					/* port is output mode */
-	PORTD->ANALOG = 0x7F80;			/* port is digital mode */
-	PORTD->PWR = 0x3FFFC000;		/* max power of port */
+	PORTD->OE = 0x00ff;					/* port is output mode */
+	PORTD->ANALOG = 0x00ff;			/* port is digital mode */
+	PORTD->PWR = 0xffffffff;		/* max power of port */
 }
 
 void ClkConfig(void)

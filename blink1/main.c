@@ -14,13 +14,14 @@ int main()
 	Current_Led=0;
 	while(1)
 	{
-		PORTD->RXTX^=1<<(7+Current_Led++);
-		if(Current_Led>7) Current_Led=0;
-		//PORTD->RXTX ^= 0xffff;
+		//PORTD->RXTX^=1<<(7+Current_Led++);
+		//if(Current_Led>7) Current_Led=0;
+		PORTD->RXTX ^= 0x000f;
 
-		for(i=0;i<10000;i++); 					//Pause ~88 ms
+		for(i=0;i<3;i++); 					//Pause ~88 ms
 	}
 }
+
 //--- Ports configuration ---
 void PortConfig()
 {
@@ -28,7 +29,7 @@ void PortConfig()
 	
 	PORTD->FUNC = 0x00000000;  	/* mode is port */
 	PORTD->RXTX = 0x0000;	     	/* clear the out */
-	PORTD->OE = 0x7F80;					/* port is output mode */
-	PORTD->ANALOG = 0x7F80;			/* port is digital mode */
-	PORTD->PWR = 0x3FFFC000;		/* max power of port */
+	PORTD->OE = 0x00ff;					/* port is output mode */
+	PORTD->ANALOG = 0x00ff;			/* port is digital mode */
+	PORTD->PWR = 0x3FFFCfff;		/* max power of port */
 }

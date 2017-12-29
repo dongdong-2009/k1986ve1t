@@ -10,14 +10,14 @@ FLASH            0x00000000         0x00020000         xr
 Linker script and memory map
 
 
-.text           0x00000000      0x9b8
+.text           0x00000000      0x9d8
                 0x00000000                . = ALIGN (0x4)
  *(.interrupt_vector)
  .interrupt_vector
                 0x00000000       0xc0 startup.o
                 0x00000000                table_interrupt_vector
  *(.text)
- .text          0x000000c0      0x5e8 main.o
+ .text          0x000000c0      0x608 main.o
                 0x000001a4                sleep
                 0x000001d0                main
                 0x00000210                PortConfig
@@ -28,73 +28,73 @@ Linker script and memory map
                 0x0000060c                SysTick_Handler
                 0x00000624                TIMER4_Handler
                 0x00000650                MIL_STD_1553B1_Handler
- .text          0x000006a8       0x68 startup.o
-                0x000006a8                Reset_Handler
-                0x000006a8                handler_reset
-                0x00000708                DMA_Handler
-                0x00000708                UART2_Handler
-                0x00000708                HardFault_Handler
-                0x00000708                ARINC429T2_Handler
-                0x00000708                EXT_INT1_Handler
-                0x00000708                PendSV_Handler
-                0x00000708                NMI_Handler
-                0x00000708                ADC_Handler
-                0x00000708                TIMER2_Handler
-                0x00000708                WWDG_Handler
-                0x00000708                POWER_Handler
-                0x00000708                BKP_Handler
-                0x00000708                TIMER1_Handler
-                0x00000708                CAN2_Handler
-                0x00000708                TIMER3_Handler
-                0x00000708                default_handler
-                0x00000708                EXT_INT2_Handler
-                0x00000708                USB_Handler
-                0x00000708                ETHERNET_Handler
-                0x00000708                ARINC429T4_Handler
-                0x00000708                EXT_INT4_Handler
-                0x00000708                MIL_STD_1553B2_Handler
-                0x00000708                CAN1_Handler
-                0x00000708                EXT_INT3_Handler
-                0x00000708                SVC_Handler
-                0x00000708                BUSY_Handler
-                0x00000708                ARINC429T3_Handler
-                0x00000708                SSP2_Handler
-                0x00000708                SSP3_Handler
-                0x00000708                ARINC429T1_Handler
-                0x00000708                ARINC429R_Handler
-                0x00000708                SSP1_Handler
- .text          0x00000710      0x298 uart.o
-                0x00000780                uart_init
-                0x00000800                uart_read
-                0x00000878                uart_send
-                0x00000920                UART1_Handler
+ .text          0x000006c8       0x68 startup.o
+                0x000006c8                Reset_Handler
+                0x000006c8                handler_reset
+                0x00000728                DMA_Handler
+                0x00000728                UART2_Handler
+                0x00000728                HardFault_Handler
+                0x00000728                ARINC429T2_Handler
+                0x00000728                EXT_INT1_Handler
+                0x00000728                PendSV_Handler
+                0x00000728                NMI_Handler
+                0x00000728                ADC_Handler
+                0x00000728                TIMER2_Handler
+                0x00000728                WWDG_Handler
+                0x00000728                POWER_Handler
+                0x00000728                BKP_Handler
+                0x00000728                TIMER1_Handler
+                0x00000728                CAN2_Handler
+                0x00000728                TIMER3_Handler
+                0x00000728                default_handler
+                0x00000728                EXT_INT2_Handler
+                0x00000728                USB_Handler
+                0x00000728                ETHERNET_Handler
+                0x00000728                ARINC429T4_Handler
+                0x00000728                EXT_INT4_Handler
+                0x00000728                MIL_STD_1553B2_Handler
+                0x00000728                CAN1_Handler
+                0x00000728                EXT_INT3_Handler
+                0x00000728                SVC_Handler
+                0x00000728                BUSY_Handler
+                0x00000728                ARINC429T3_Handler
+                0x00000728                SSP2_Handler
+                0x00000728                SSP3_Handler
+                0x00000728                ARINC429T1_Handler
+                0x00000728                ARINC429R_Handler
+                0x00000728                SSP1_Handler
+ .text          0x00000730      0x298 uart.o
+                0x000007a0                uart_init
+                0x00000820                uart_read
+                0x00000898                uart_send
+                0x00000940                UART1_Handler
  *(.text*)
  *(.rodata)
- .rodata        0x000009a8        0xe main.o
+ .rodata        0x000009c8        0xe main.o
  *(.rodata*)
-                0x000009b8                . = ALIGN (0x4)
- *fill*         0x000009b6        0x2 
-                0x000009b8                _data_flash = .
+                0x000009d8                . = ALIGN (0x4)
+ *fill*         0x000009d6        0x2 
+                0x000009d8                _data_flash = .
 
-.glue_7         0x000009b8        0x0
- .glue_7        0x000009b8        0x0 linker stubs
+.glue_7         0x000009d8        0x0
+ .glue_7        0x000009d8        0x0 linker stubs
 
-.glue_7t        0x000009b8        0x0
- .glue_7t       0x000009b8        0x0 linker stubs
+.glue_7t        0x000009d8        0x0
+ .glue_7t       0x000009d8        0x0 linker stubs
 
-.vfp11_veneer   0x000009b8        0x0
- .vfp11_veneer  0x000009b8        0x0 linker stubs
+.vfp11_veneer   0x000009d8        0x0
+ .vfp11_veneer  0x000009d8        0x0 linker stubs
 
-.v4_bx          0x000009b8        0x0
- .v4_bx         0x000009b8        0x0 linker stubs
+.v4_bx          0x000009d8        0x0
+ .v4_bx         0x000009d8        0x0 linker stubs
 
-.iplt           0x000009b8        0x0
- .iplt          0x000009b8        0x0 main.o
+.iplt           0x000009d8        0x0
+ .iplt          0x000009d8        0x0 main.o
 
-.rel.dyn        0x000009b8        0x0
- .rel.iplt      0x000009b8        0x0 main.o
+.rel.dyn        0x000009d8        0x0
+ .rel.iplt      0x000009d8        0x0 main.o
 
-.data           0x20000000        0x4 load address 0x000009b8
+.data           0x20000000        0x4 load address 0x000009d8
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_begin = .
  *(.data)
@@ -106,10 +106,10 @@ Linker script and memory map
                 0x20000004                . = ALIGN (0x4)
                 0x20000004                _data_end = .
 
-.igot.plt       0x20000004        0x0 load address 0x000009bc
+.igot.plt       0x20000004        0x0 load address 0x000009dc
  .igot.plt      0x20000004        0x0 main.o
 
-.bss            0x20000004      0x45c load address 0x000009bc
+.bss            0x20000004      0x45c load address 0x000009dc
                 0x20000004                . = ALIGN (0x4)
                 0x20000004                _bss_begin = .
                 0x20000004                __bss_start__ = _bss_begin
@@ -137,7 +137,7 @@ Linker script and memory map
                 0x20007c00                _stack_begin = (_stack_end - _stack_size)
                 0x20007c00                . = _stack_begin
 
-._stack         0x20000460      0x400 load address 0x00000e18
+._stack         0x20000460      0x400 load address 0x00000e38
                 0x20000860                . = (. + _stack_size)
  *fill*         0x20000460      0x400 
 LOAD main.o
@@ -163,10 +163,10 @@ OUTPUT(blink.elf elf32-littlearm)
  .debug_aranges
                 0x00000040       0x20 uart.o
 
-.debug_line     0x00000000      0x2eb
- .debug_line    0x00000000      0x1af main.o
- .debug_line    0x000001af       0x50 startup.o
- .debug_line    0x000001ff       0xec uart.o
+.debug_line     0x00000000      0x2ed
+ .debug_line    0x00000000      0x1b1 main.o
+ .debug_line    0x000001b1       0x50 startup.o
+ .debug_line    0x00000201       0xec uart.o
 
 .debug_str      0x00000000      0x839
  .debug_str     0x00000000      0x6dd main.o

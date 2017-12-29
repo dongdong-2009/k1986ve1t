@@ -1,0 +1,254 @@
+Archive member included to satisfy reference by file (symbol)
+
+/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                              xprintf.o (__aeabi_uidiv)
+/home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                              /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+RAM1             0x20000000         0x00008000         rw
+RAM2             0x20100000         0x00004000         xrw
+FLASH            0x00000000         0x00020000         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+
+.text           0x00000000     0x1438
+                0x00000000                . = ALIGN (0x4)
+ *(.interrupt_vector)
+ .interrupt_vector
+                0x00000000       0xc0 startup.o
+                0x00000000                table_interrupt_vector
+ *(.text)
+ .text          0x000000c0      0x698 main.o
+                0x000000f8                mil_null
+                0x00000104                mil_2pc
+                0x00000164                sleep
+                0x00000190                main
+                0x00000340                PortConfig
+                0x000004cc                ClkConfig
+                0x00000540                TimerConfig
+                0x000005b4                mil_std_1533_init_bc
+                0x0000064c                SystemInit
+                0x0000066c                SysTick_Handler
+                0x00000684                TIMER4_Handler
+                0x00000744                MIL_STD_1553B1_Handler
+ .text          0x00000758       0x68 startup.o
+                0x00000758                Reset_Handler
+                0x00000758                handler_reset
+                0x000007b8                DMA_Handler
+                0x000007b8                HardFault_Handler
+                0x000007b8                ARINC429T2_Handler
+                0x000007b8                EXT_INT1_Handler
+                0x000007b8                PendSV_Handler
+                0x000007b8                NMI_Handler
+                0x000007b8                ADC_Handler
+                0x000007b8                TIMER2_Handler
+                0x000007b8                WWDG_Handler
+                0x000007b8                POWER_Handler
+                0x000007b8                BKP_Handler
+                0x000007b8                TIMER1_Handler
+                0x000007b8                CAN2_Handler
+                0x000007b8                TIMER3_Handler
+                0x000007b8                default_handler
+                0x000007b8                EXT_INT2_Handler
+                0x000007b8                UART1_Handler
+                0x000007b8                USB_Handler
+                0x000007b8                ETHERNET_Handler
+                0x000007b8                ARINC429T4_Handler
+                0x000007b8                EXT_INT4_Handler
+                0x000007b8                MIL_STD_1553B2_Handler
+                0x000007b8                CAN1_Handler
+                0x000007b8                EXT_INT3_Handler
+                0x000007b8                SVC_Handler
+                0x000007b8                BUSY_Handler
+                0x000007b8                ARINC429T3_Handler
+                0x000007b8                SSP2_Handler
+                0x000007b8                SSP3_Handler
+                0x000007b8                ARINC429T1_Handler
+                0x000007b8                ARINC429R_Handler
+                0x000007b8                SSP1_Handler
+ .text          0x000007c0      0x2a0 uart.o
+                0x000007f8                uart_bsz
+                0x00000818                uart_init
+                0x00000898                uart_putch
+                0x000008c4                uart_read
+                0x0000093c                uart_send
+                0x000009d8                UART2_Handler
+ .text          0x00000a60      0x844 xprintf.o
+                0x00000a60                xputc
+                0x00000ab8                xputs
+                0x00000ae0                xfputs
+                0x00000e3c                xprintf
+                0x00000e64                xsprintf
+                0x00000ea8                xfprintf
+                0x00000ee8                put_dump
+                0x00000fec                xgets
+                0x0000108c                xfgets
+                0x000010c8                xatoi
+ .text          0x000012a4      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                0x000012a4                __udivsi3
+                0x000012a4                __aeabi_uidiv
+                0x000013b0                __aeabi_uidivmod
+ .text          0x000013b8        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                0x000013b8                __aeabi_ldiv0
+                0x000013b8                __aeabi_idiv0
+ *(.text*)
+ *(.rodata)
+ .rodata        0x000013bc       0x7b xprintf.o
+ *(.rodata*)
+                0x00001438                . = ALIGN (0x4)
+ *fill*         0x00001437        0x1 
+                0x00001438                _data_flash = .
+
+.glue_7         0x00001438        0x0
+ .glue_7        0x00001438        0x0 linker stubs
+
+.glue_7t        0x00001438        0x0
+ .glue_7t       0x00001438        0x0 linker stubs
+
+.vfp11_veneer   0x00001438        0x0
+ .vfp11_veneer  0x00001438        0x0 linker stubs
+
+.v4_bx          0x00001438        0x0
+ .v4_bx         0x00001438        0x0 linker stubs
+
+.iplt           0x00001438        0x0
+ .iplt          0x00001438        0x0 main.o
+
+.rel.dyn        0x00001438        0x0
+ .rel.iplt      0x00001438        0x0 main.o
+
+.data           0x20000000        0x8 load address 0x00001438
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                _data_begin = .
+ *(.data)
+ .data          0x20000000        0x8 main.o
+                0x20000000                marker_seq
+                0x20000004                proc_mil
+ .data          0x20000008        0x0 startup.o
+ .data          0x20000008        0x0 uart.o
+ .data          0x20000008        0x0 xprintf.o
+ .data          0x20000008        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .data          0x20000008        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+ *(.data*)
+                0x20000008                . = ALIGN (0x4)
+                0x20000008                _data_end = .
+
+.igot.plt       0x20000008        0x0 load address 0x00001440
+ .igot.plt      0x20000008        0x0 main.o
+
+.bss            0x20000008     0x4068 load address 0x00001440
+                0x20000008                . = ALIGN (0x4)
+                0x20000008                _bss_begin = .
+                0x20000008                __bss_start__ = _bss_begin
+ *(.bss)
+ .bss           0x20000008       0x4c main.o
+                0x20000008                array_tm2
+                0x20000048                system_time
+                0x2000004c                marker_flg
+                0x20000050                tlm_flg
+ .bss           0x20000054        0x0 startup.o
+ .bss           0x20000054     0x4010 uart.o
+                0x20000054                tx_buf
+                0x20002054                tx_idx
+                0x20002058                tx_wr_idx
+                0x2000205c                rx_buf
+                0x2000405c                rx_idx
+                0x20004060                rx_rd_idx
+ .bss           0x20004064        0xc xprintf.o
+                0x20004064                xfunc_out
+                0x2000406c                xfunc_in
+ .bss           0x20004070        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .bss           0x20004070        0x0 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+ *(.bss*)
+ *(COMMON)
+                0x20004070                . = ALIGN (0x4)
+                0x20004070                _bss_end = .
+                0x20004070                __bss_end__ = _bss_end
+                0x00000400                _stack_size = 0x400
+                0x20008000                _stack_end = (ORIGIN (RAM1) + LENGTH (RAM1))
+                0x20007c00                _stack_begin = (_stack_end - _stack_size)
+                0x20007c00                . = _stack_begin
+
+._stack         0x20004070      0x400 load address 0x000054a8
+                0x20004470                . = (. + _stack_size)
+ *fill*         0x20004070      0x400 
+LOAD main.o
+LOAD startup.o
+LOAD uart.o
+LOAD xprintf.o
+START GROUP
+LOAD /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a
+END GROUP
+OUTPUT(blink.elf elf32-littlearm)
+
+.debug_info     0x00000000     0x14cf
+ .debug_info    0x00000000      0x956 main.o
+ .debug_info    0x00000956       0xf1 startup.o
+ .debug_info    0x00000a47      0x5bf uart.o
+ .debug_info    0x00001006      0x4c9 xprintf.o
+
+.debug_abbrev   0x00000000      0x633
+ .debug_abbrev  0x00000000      0x232 main.o
+ .debug_abbrev  0x00000232       0xab startup.o
+ .debug_abbrev  0x000002dd      0x1c2 uart.o
+ .debug_abbrev  0x0000049f      0x194 xprintf.o
+
+.debug_aranges  0x00000000       0x80
+ .debug_aranges
+                0x00000000       0x20 main.o
+ .debug_aranges
+                0x00000020       0x20 startup.o
+ .debug_aranges
+                0x00000040       0x20 uart.o
+ .debug_aranges
+                0x00000060       0x20 xprintf.o
+
+.debug_line     0x00000000      0x609
+ .debug_line    0x00000000      0x1e3 main.o
+ .debug_line    0x000001e3       0x50 startup.o
+ .debug_line    0x00000233       0xf3 uart.o
+ .debug_line    0x00000326      0x2e3 xprintf.o
+
+.debug_str      0x00000000      0x874
+ .debug_str     0x00000000      0x66c main.o
+                                0x69f (size before relaxing)
+ .debug_str     0x0000066c       0xa5 startup.o
+                                0x16a (size before relaxing)
+ .debug_str     0x00000711       0xbb uart.o
+                                0x4ce (size before relaxing)
+ .debug_str     0x000007cc       0xa8 xprintf.o
+                                0x1c4 (size before relaxing)
+
+.comment        0x00000000       0x6e
+ .comment       0x00000000       0x6e main.o
+                                 0x6f (size before relaxing)
+ .comment       0x0000006e       0x6f startup.o
+ .comment       0x0000006e       0x6f uart.o
+ .comment       0x0000006e       0x6f xprintf.o
+
+.ARM.attributes
+                0x00000000       0x31
+ .ARM.attributes
+                0x00000000       0x31 main.o
+ .ARM.attributes
+                0x00000031       0x31 startup.o
+ .ARM.attributes
+                0x00000062       0x31 uart.o
+ .ARM.attributes
+                0x00000093       0x31 xprintf.o
+ .ARM.attributes
+                0x000000c4       0x1e /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x000000e2       0x1e /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+
+.debug_frame    0x00000000      0x450
+ .debug_frame   0x00000000      0x190 main.o
+ .debug_frame   0x00000190       0x4c startup.o
+ .debug_frame   0x000001dc       0xe4 uart.o
+ .debug_frame   0x000002c0      0x170 xprintf.o
+ .debug_frame   0x00000430       0x20 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)

@@ -140,7 +140,7 @@ void UartConfig(void)
 	// UART_CLK = 120MHz
 	// rate = 115200 k
 	// div = 120000/16/115.2 = 65.1042
-	RST_CLK->PER_CLOCK |= (1 << 6);								// enable clock UART1
+	RST_CLK->PER_CLOCK |= (1 << 7);								// enable clock UART1
 	RST_CLK->UART_CLOCK |= (1 << 24);	
 	
 	UART1->IBRD = 65;											// 65

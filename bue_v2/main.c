@@ -515,38 +515,36 @@ int main()
 
 		// vector sync motor controller
 		phase = 1023&(phase+PHASE_MARGIN);    // phase offset for correct rotor position
-		
+
 		// convert abc currents to dq
 		abc[0] = ia;
 		abc[1] = ib;
 		abc[2] = ic;
 		abc_to_dq(abc, dq, phase);
-		
+
 		// get the errors
 		ed = 0 - dq[0];
 		eq = qref - dq[1];
-		
+
 		// regulators do its work
 		reg_update(&dreg, ed , fsat);
 		reg_update(&qreg, eq , fsat);			
-		
+
 		// pwm modulation
 		dq[0] = dreg.y>>2;
 		dq[1] = qreg.y>>2;
-		
+
 		fsat = svpwm(abc, dq, phase);
 		//fsat = sinpwm(abc, dq, phase);		
-		
-	
+
 		// set the pwm controller
 		TIMER4->CCR1 = (abc[0])+512;
 		TIMER4->CCR2 = (abc[1])+512;
 		TIMER4->CCR3 = (abc[2])+512;
-		
+
 		//DAC->DAC1_DATA = ed + 2048;
 		//DAC->DAC1_DATA = phase;
 		//DAC->DAC1_DATA = abc[0] + 2048;
-
 	}
 }
 

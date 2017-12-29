@@ -174,16 +174,15 @@ void mil_std_1533_init_bc(void)
 	RST_CLK->ETH_CLOCK |= (1 << 25);							// clock mil_1533 enable
 	
 	MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_MR;
-	MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_TRA | MIL_STD_1553_CONTROL_BCMODE | 
-								(MIL_DIV<<11);
+	MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_TRA | MIL_STD_1553_CONTROL_BCMODE | (MIL_DIV<<11);
 	//MIL_STD_15531->INTEN |= MIL_STD_1553_INTEN_ERRIE; // errors int enable
 	MIL_STD_15531->INTEN |= MIL_STD_1553_INTEN_VALMESSIE; // trans is OK int enable
 	NVIC_EnableIRQ(MIL_STD_1553B1_IRQn);
 								
 	MIL_STD_15531->CommandWord1 = 0;
 	//MIL_STD_15531->CommandWord1 |= (RT_ADDR<<11) | (1<<10) | (0x1f<<5) | 2;	// запрос ОС
-	//MIL_STD_15531->CommandWord1 |= (RT_ADDR<<11) | (1<<10) | (RT_SBADDR<<5) | NUM_DW;	// запрос NUM_DW слов из подадреса RT_SBADDR ОУ RT_ADDR
-	MIL_STD_15531->CommandWord1 |= (RT_ADDR<<11) | (0<<10) | (RT_SBADDR<<5) | NUM_DW;	// запись NUM_DW слов в подадрес RT_SBADDR ОУ RT_ADDR
+	MIL_STD_15531->CommandWord1 |= (RT_ADDR<<11) | (1<<10) | (RT_SBADDR<<5) | NUM_DW;	// запрос NUM_DW слов из подадреса RT_SBADDR ОУ RT_ADDR
+	//MIL_STD_15531->CommandWord1 |= (RT_ADDR<<11) | (0<<10) | (RT_SBADDR<<5) | NUM_DW;	// запись NUM_DW слов в подадрес RT_SBADDR ОУ RT_ADDR
 	
 	for(i = 0; i < 32; i++){
 		*pw++ = (uint16_t)i;
@@ -225,7 +224,7 @@ void MIL_STD_1553B1_Handler(void)
 	
 	PORTD->RXTX ^= 0xffff;
 	
-	/* КШ получает данные от ОУ
+	// КШ получает данные от ОУ	
 	PORTD->RXTX |= 0xffff;
 	pw = (uint32_t*)(MIL_STD_15531_BASE+0x80); 
 	for(i = 0; i < 32; i++){
@@ -233,12 +232,13 @@ void MIL_STD_1553B1_Handler(void)
 	}
 	PORTD->RXTX &= ~0xffff;	
 	uart_send((uint8_t*)array_tm2, 64);
-	*/
 	
+	/*
 	// КШ отправляет данные ОУ
 	uart_read((uint8_t*)array_tm2, 64);
 	pw = (uint32_t*)(MIL_STD_15531_BASE+0x80);
 	for(i = 0; i < 32; i++){
 		*pw++ = array_tm2[i];
 	}
+	*/
 }
