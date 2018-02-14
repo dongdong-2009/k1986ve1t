@@ -83,6 +83,33 @@ void update_telemetry(uint32_t t)
 	disp_idx = disp_idx^1;			
 }
 
+void send_command(struct STR_CONTROL *pc)
+{
+	uint8_t com[5];
+	uint16_t buf = pc->ref1;
+	
+	com[0] = pc->ref1 & 0xff;
+	com[1] = (pc->ref1>>8) & 0x0f;
+	com[1] |= (pc->ref2<<4) & 0xf0;
+	com[2] = (pc->ref2>>4) & 0xff;
+	com[3] = pc->ref3 & 0xff;
+	com[4] = (pc->ref3>>8) & 0x0f;
+	
+//	com[5] = 0x00;
+//	com[6] = 0x00;
+//	com[7] = 0x00;
+
+	/*
+	com[0] = 0x21;
+	com[1] = 0x43;
+	com[2] = 0x56;
+	com[3] = 0x87;
+	com[4] = 0xa9;
+	*/
+
+	uart_send(com, sizeof(com));
+}
+
 int main()
 {
 	char ch;
@@ -92,8 +119,8 @@ int main()
 	Current_Led=0;
 	int i = 0;
 	
-	xdev_out(uart_putch);
-	xprintf("hello\r\n");
+	//xdev_out(uart_putch);
+	//xprintf("hello\r\n");
 	
 	cnt = 0;
 	
@@ -109,6 +136,7 @@ int main()
 				int val = (control506.ref1 & 0x8000 ? control506.ref1-65536 : control506.ref1);
 				//xprintf("s=%d\r\n", val);
 				DAC->DAC1_DATA = val+2048;
+				send_command(&control506);
 			}
 			else DAC->DAC1_DATA = 2048;
 			

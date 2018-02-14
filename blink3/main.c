@@ -27,7 +27,7 @@ int main()
 	{
 		//PORTD->RXTX^=1<<(7+Current_Led++);
 		//if(Current_Led>7) Current_Led=0;
-		//PORTD->RXTX ^= 0xffff;
+		//PORTE->RXTX ^= 0xffff;
 
 		sleep(1000);
 		
@@ -36,13 +36,13 @@ int main()
 //--- Ports configuration ---
 void PortConfig()
 {
-	RST_CLK->PER_CLOCK|=1<<24;	 				//clock of PORTD ON
+	RST_CLK->PER_CLOCK|=1<<25;	 				//clock of PORTE ON
 	
-	PORTD->FUNC = 0x00000000;  	/* mode is port */
-	PORTD->RXTX = 0x0000;	     	/* clear the out */
-	PORTD->OE = 0x00ff;					/* port is output mode */
-	PORTD->ANALOG = 0x00ff;			/* port is digital mode */
-	PORTD->PWR = 0xffffffff;		/* max power of port */
+	PORTE->FUNC = 0x00000000;  	/* mode is port */
+	PORTE->RXTX = 0x0000;	     	/* clear the out */
+	PORTE->OE = 0x00ff;					/* port is output mode */
+	PORTE->ANALOG = 0x00ff;			/* port is digital mode */
+	PORTE->PWR = 0xffffffff;		/* max power of port */
 }
 
 void ClkConfig(void)
@@ -100,5 +100,5 @@ void SysTick_Handler(void)
 void TIMER1_Handler(void)
 {
 	TIMER1->STATUS = 0;
-	PORTD->RXTX ^= 0xffff;	
+	PORTE->RXTX ^= 0xffff;	
 }

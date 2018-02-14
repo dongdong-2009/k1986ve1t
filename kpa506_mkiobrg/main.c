@@ -90,9 +90,9 @@ int main()
 				buf[ib] = bc;
 				ib = (ib+1)&127;
 				
-				int bsz = uart_bsz();				
-				if(bsz > BUF_TH_DOWN)	PORTE->OE &= ~(1 << 7); 				
-				else if(bsz < BUF_TH_UP) PORTE->OE |= (1 << 7); 
+				//int bsz = uart_bsz();				
+				//if(bsz > BUF_TH_DOWN)	PORTE->OE &= ~(1 << 7); 				
+				//else if(bsz < BUF_TH_UP) PORTE->OE |= (1 << 7); 
 				//xprintf("%d\n", bsz);
 			}
 		}
@@ -149,14 +149,16 @@ void PortConfig()
 	PORTD->PWR |= (0x03 << (7<<1));
 	PORTD->RXTX &= ~(1 << 7);
 	
-	// KT21 PE.7
+	// KT21 - PE.7 
+	// RS485_1_TR - PE11
 	RST_CLK->PER_CLOCK |= 1<<25;	 				//clock of PORTE ON
-	PORTE->ANALOG |= (1 << 7); 
-	PORTE->OE |= (1 << 7); 
+	PORTE->ANALOG |= (1 << 7) + (1 << 11);
+	PORTE->OE |= (1 << 7) + (1 << 11);
 	//PORTE->OE &= ~(1 << 7); 
 	PORTE->FUNC &= ~(0x03 << (7<<1));
-	PORTE->PWR |= (0x03 << (7<<1));
-	PORTE->RXTX &= ~(1 << 7);	
+	PORTE->PWR |= (0x03 << (7<<1)) + (0x03 << (11<<1)); 
+	PORTE->RXTX &= ~(1 << 7);
+	PORTE->RXTX &= ~(1 << 11);  // RS485_1_TR - 0
 }
 
 void ClkConfig(void)

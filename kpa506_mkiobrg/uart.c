@@ -10,7 +10,7 @@ char rx_buf[BUF_SIZE];
 int  rx_idx = 0;
 int  rx_rd_idx = 0;
 
-int uart_bsz(void)
+static inline int uart_bsz(void)
 {
 	return (rx_idx - rx_rd_idx)&(BUF_SIZE-1);
 }
@@ -59,6 +59,11 @@ int uart_read(char *pb, int nb)
                         break;
                 }
         }
+        
+        // flow control
+		int bsz = uart_bsz();				
+		if(bsz < BUF_TH_UP) PORTE->OE |= (1 << 7); // enable flow
+        
         return i;
 }
 
@@ -113,5 +118,10 @@ void UART2_Handler(void)
 	{       
 		rx_buf[rx_idx] = UART2->DR;
 		rx_idx = (rx_idx+1)&(BUF_SIZE-1);
+		
+		// flow control
+		int bsz = uart_bsz();				
+		if(bsz > BUF_TH_DOWN)	PORTE->OE &= ~(1 << 7); // disable flow
+
 	}        	
 }

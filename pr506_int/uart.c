@@ -16,9 +16,11 @@ void uart_init(void)
 	RST_CLK->UART_CLOCK |= (1 << 24);		
 	
 	// UART_CLK = 120MHz
-	// rate = 500 k
-	// div = 120000/16/500 = 15.0
-	UART1->IBRD = 15;											// 15
+	// rate = 500 k div = 120000/16/500 = 15.0
+	// rate = 1250 k div = 120000/16/1250 = 6.0
+	//UART1->IBRD = 15;											// 15
+	//UART1->FBRD = 0;											// round(0.0*2^6) = 0
+	UART1->IBRD = 6;											// 6
 	UART1->FBRD = 0;											// round(0.0*2^6) = 0
 
 	UART1->IFLS &= ~(UART_IFLS_RXIFLSEL_MASK | UART_IFLS_TXIFLSEL_MASK);

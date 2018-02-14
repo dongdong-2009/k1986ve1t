@@ -177,7 +177,7 @@ Disassembly of section .text:
  1f6:	4a0c      	ldr	r2, [pc, #48]	; (228 <PortConfig+0x38>)
  1f8:	69d2      	ldr	r2, [r2, #28]
  1fa:	2180      	movs	r1, #128	; 0x80
- 1fc:	0449      	lsls	r1, r1, #17
+ 1fc:	0489      	lsls	r1, r1, #18
  1fe:	430a      	orrs	r2, r1
  200:	61da      	str	r2, [r3, #28]
  202:	4b0a      	ldr	r3, [pc, #40]	; (22c <PortConfig+0x3c>)
@@ -200,7 +200,7 @@ Disassembly of section .text:
  224:	46bd      	mov	sp, r7
  226:	bd80      	pop	{r7, pc}
  228:	40020000 	.word	0x40020000
- 22c:	400c0000 	.word	0x400c0000
+ 22c:	400c8000 	.word	0x400c8000
 
 00000230 <ClkConfig>:
  230:	b580      	push	{r7, lr}
@@ -357,7 +357,7 @@ Disassembly of section .text:
  368:	46bd      	mov	sp, r7
  36a:	bd80      	pop	{r7, pc}
  36c:	40070000 	.word	0x40070000
- 370:	400c0000 	.word	0x400c0000
+ 370:	400c8000 	.word	0x400c8000
  374:	0000ffff 	.word	0x0000ffff
 
 00000378 <handler_reset>:
