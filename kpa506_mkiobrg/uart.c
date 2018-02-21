@@ -21,11 +21,11 @@ void uart_init(void)
 	RST_CLK->UART_CLOCK |= (1 << 25);	
 		
 	// UART_CLK = 120MHz
-	// rate = 500 k
-	// div = 120000/16/500 = 15.0
+	// rate = 500 k div = 120000/16/500 = 15.0
+	// rate = 921.6 k div = 120000/16/921.6 = 8.138
 	
-	UART2->IBRD = 15;											// 15
-	UART2->FBRD = 0;											// round(0.0*2^6) = 0
+	UART2->IBRD = 8;											// 8
+	UART2->FBRD = 9;											// round(0.138*2^6) = 9
 
 	UART2->IFLS &= ~(UART_IFLS_RXIFLSEL_MASK | UART_IFLS_TXIFLSEL_MASK);
 	UART2->IFLS |= (4 << UART_IFLS_RXIFLSEL_OFFS) | (4 << UART_IFLS_TXIFLSEL_OFFS);  // threshold for FIFO is 7/8

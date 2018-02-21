@@ -916,10 +916,10 @@ Disassembly of section .text:
      802:	430a      	orrs	r2, r1
      804:	629a      	str	r2, [r3, #40]	; 0x28
      806:	4b16      	ldr	r3, [pc, #88]	; (860 <uart_init+0x78>)
-     808:	220f      	movs	r2, #15
+     808:	2208      	movs	r2, #8
      80a:	625a      	str	r2, [r3, #36]	; 0x24
      80c:	4b14      	ldr	r3, [pc, #80]	; (860 <uart_init+0x78>)
-     80e:	2200      	movs	r2, #0
+     80e:	2209      	movs	r2, #9
      810:	629a      	str	r2, [r3, #40]	; 0x28
      812:	4b13      	ldr	r3, [pc, #76]	; (860 <uart_init+0x78>)
      814:	4a12      	ldr	r2, [pc, #72]	; (860 <uart_init+0x78>)

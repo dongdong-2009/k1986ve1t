@@ -48,8 +48,8 @@ int init_port(void)
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
-	cfsetispeed(&options, B500000);
-	cfsetospeed(&options, B500000);
+	cfsetispeed(&options, B921600);
+	cfsetospeed(&options, B921600);
 
 	/* set the options */
 	tcsetattr(fd, TCSANOW, &options);
@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
 					printf("%04x:", tlm[i]);
 				}				
 				printf("%04x\r\n", tlm[i]);
+				printf("t = %dms:pos = %d:refpos=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
 			}
 							
 		 }

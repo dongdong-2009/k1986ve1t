@@ -58,46 +58,79 @@ int sleep(uint32_t ms)
 
 void update_telemetry(uint32_t t)
 {
+	struct STR_BUPR_TLM btlm;
 	struct STR_TELEMETRY *ptm = *(pdisp_tm+disp_idx);
 	int i;
-	for(i = 0; i < 32; i++) ((uint16_t*)ptm)[i] = 0;
+	//for(i = 0; i < 32; i++) ((uint16_t*)ptm)[i] = 0;
 	
-	ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
-	ptm->tmh = 0xffff&(t>>16);
-	ptm->tml = 0xffff&t;
-	ptm->pos1 = DAC->DAC1_DATA;
-	ptm->pos2 = 0;
-	ptm->pos3 = 0;
-	ptm->cw = 0;
-	ptm->ref1 = 0;
-	ptm->ref2 = 0;
-	ptm->ref3 = 0;
-	ptm->uaux = 27;
-	ptm->upwr = 27;
-	ptm->impr1 = 10;
-	ptm->impr2 = 0;
-	ptm->impr3 = 0;
-	ptm->ipwr = 1;	
-	ptm->cs = get_checksum((uint16_t*)ptm, 31);
+	if(UART1->MIS & UART_MIS_RXMIS)
+	{       
+		uint8_t *pbtlm = (uint8_t*)&btlm;
+		
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+		*pbtlm++ = UART1->DR;
+
+		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
+		ptm->tmh = 0xffff&(t>>16);
+		ptm->tml = 0xffff&t;
+		ptm->pos1 = btlm.pos;
+		ptm->pos2 = 0;
+		ptm->pos3 = 0;
+		ptm->cw = 0;
+		ptm->ref1 = btlm.refpos;
+		ptm->ref2 = 0;
+		ptm->ref3 = 0;
+		ptm->uaux = 27;
+		ptm->upwr = 27;
+		ptm->impr1 = btlm.pcur;
+		ptm->impr2 = 0;
+		ptm->impr3 = 0;
+		ptm->ipwr = 1;	
+		ptm->cs = get_checksum((uint16_t*)ptm, 31);
+		
+		disp_idx = disp_idx^1;			
+	}
 	
-	disp_idx = disp_idx^1;			
+	if(UART1->MIS & UART_MIS_RTMIS){
+		// error timeout
+		while(0 == (UART1->FR & UART_FR_RXFE)) {
+			char buf = UART1->DR; // empting the fifo
+		}
+	}	
 }
 
 void send_command(struct STR_CONTROL *pc)
 {
-	uint8_t com[5];
+	uint8_t com[8];
 	uint16_t buf = pc->ref1;
+	uint8_t *pb = com;
 	
-	com[0] = pc->ref1 & 0xff;
+	UART1->DR = pc->ref1 & 0xff;
+	UART1->DR = (pc->ref1>>8) & 0xff;
+	UART1->DR = pc->ref2 & 0xff;
+	UART1->DR = (pc->ref2>>8) & 0xff;	
+	UART1->DR = pc->ref3 & 0xff;
+	UART1->DR = (pc->ref3>>8) & 0xff;	
+	UART1->DR = 0;
+	UART1->DR = 0;
+
+	/*com[0] = pc->ref1 & 0xff;
 	com[1] = (pc->ref1>>8) & 0x0f;
 	com[1] |= (pc->ref2<<4) & 0xf0;
 	com[2] = (pc->ref2>>4) & 0xff;
 	com[3] = pc->ref3 & 0xff;
 	com[4] = (pc->ref3>>8) & 0x0f;
 	
-//	com[5] = 0x00;
-//	com[6] = 0x00;
-//	com[7] = 0x00;
+	com[5] = 0x00;
+	com[6] = 0x00;
+	com[7] = 0x00;
+	*/
 
 	/*
 	com[0] = 0x21;
@@ -107,7 +140,17 @@ void send_command(struct STR_CONTROL *pc)
 	com[4] = 0xa9;
 	*/
 
-	uart_send(com, sizeof(com));
+	//uart_send(com, sizeof(com));
+	/*
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;
+	UART1->DR = *pb++;	
+	*/
 }
 
 int main()
@@ -143,10 +186,14 @@ int main()
 			cwready_flg = 0;
 		}
 		
-		if(tlmready_flg){
+		update_telemetry(system_time);
+		
+		/*if(tlmready_flg){
 			update_telemetry(system_time);	
 			tlmready_flg = 0;
-		}
+		}*/
+		
+		
 	}
 }
 
@@ -190,7 +237,13 @@ void PortConfig()
 					
 	// выход для dac0
 	RST_CLK->PER_CLOCK |= 1<<25;	 				//clock of PORTE ON					
-	PORTE->ANALOG &= ~(1<<1); // pe1 - dac0 out					
+	PORTE->ANALOG &= ~(1<<1); 	// pe1 - dac0 out	
+
+	PORTE->ANALOG |= 1<<3; 		// pe3 - TMR1_CH1 out
+	PORTE->FUNC &= ~(3 <<(3<<1));  // цифровой порт
+	PORTE->FUNC |= (1 << (3<<1));  // основная функция - TMR1_CH1	
+	PORTE->PWR |= (0x03 << (3<<1));		// max speed pe.3
+	PORTE->OE |= (1 << 3);				// pe.3 - выход
 	
 	// Настройка выводов UART1 PC.3 PC.4
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС ON
@@ -228,6 +281,24 @@ void ClkConfig(void)
 
 void TimerConfig(void)
 {
+	// enable TIM1
+	RST_CLK->PER_CLOCK |= (1 << 14);
+	RST_CLK->TIM_CLOCK |= (1 << 24);
+	RST_CLK->TIM_CLOCK &= ~(0xff<<0); // TIM1_CLK = HCLK
+	
+	TIMER1->CNT = 0;
+	TIMER1->PSG = 120 - 1;  // prescaller
+	TIMER1->ARR = 1000 - 1;	// TIM1 period is 1ms
+	TIMER1->CCR1 = 500;
+
+	TIMER1->CH1_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;
+	TIMER1->CH1_CNTRL |= (7 << TIMER_CH_CNTRL_OCCM_OFFS);									// 111: 0, если DIR= 0 (счет вверх), CNT<CCR, иначе 1	
+	TIMER1->CH1_CNTRL1 &= ~(TIMER_CH_CNTRL1_SELO_MASK | TIMER_CH_CNTRL1_SELOE_MASK);		// настройка прямого выхода канала 1
+	TIMER1->CH1_CNTRL1 |= (3 << TIMER_CH_CNTRL1_SELO_OFFS);	    							// на прямой выход канала 1 идет REF 
+	TIMER1->CH1_CNTRL1 |= (1 << TIMER_CH_CNTRL1_SELOE_OFFS);	    						// прямой выход канала 1 всегда работает на выход на OE всегда 1	
+	
+	TIMER1->CNTRL = TIMER_CNTRL_CNT_EN; 						// start count up
+	
 	// enable TIM4
 	RST_CLK->PER_CLOCK |= (1 << 19);
 	RST_CLK->UART_CLOCK |= (1 << 26);
@@ -235,9 +306,9 @@ void TimerConfig(void)
 	//RST_CLK->TIM_CLOCK |= (0xff << 16);
 	
 	TIMER4->CNT = 0;
-	TIMER4->PSG = 120 - 1;  // prescaller gets 1 MHz
-	TIMER4->ARR = 5000 - 1;	// TIM4 period is 5 ms
-	TIMER4->CCR1 = 2000;
+	//TIMER4->PSG = 36*2 - 1;  // prescaller
+	TIMER4->PSG = 120 - 1;  // prescaller
+	TIMER4->ARR = 1000 - 1;	// TIM4 period
 	
 	TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
 	

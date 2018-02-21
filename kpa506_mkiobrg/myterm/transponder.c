@@ -1,9 +1,9 @@
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
+#include <stdio.h>   		/* Standard input/output definitions */
+#include <string.h>  		/* String function definitions */
+#include <unistd.h>  		/* UNIX standard function definitions */
+#include <fcntl.h>   		/* File control definitions */
+#include <errno.h>   		/* Error number definitions */
+#include <termios.h> 		/* POSIX terminal control definitions */
 #include <sys/ioctl.h> 
 #include <linux/serial.h> 
 #include <stdint.h>
@@ -48,8 +48,10 @@ int init_port(void)
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
-	cfsetispeed(&options, B500000);
-	cfsetospeed(&options, B500000);
+	//cfsetispeed(&options, B500000);
+	//cfsetospeed(&options, B500000);
+	cfsetispeed(&options, B921600);
+	cfsetospeed(&options, B921600);	
 
 	/* set the options */
 	tcsetattr(fd, TCSANOW, &options);
@@ -130,6 +132,7 @@ int main(int argc, char *argv[])
 		}
 		//while(nb = read(fcom, &ch, 1))	putc(ch, stderr);
 	
+		//fprintf(stderr,"telem:\n");
 		while(nb = read(fcom, &bc, 1))
 		{
 			if((bc==0x55) && (bp==0xaa)){
@@ -145,7 +148,8 @@ int main(int argc, char *argv[])
 					for(i = 0; i < 31; i++){
 						printf("%04x:", tlm[i]);
 					}				
-					printf("%04x\r\n", tlm[i]);
+					printf("%04x\r\n", tlm[i]);					
+					printf("t = %dms:pos = %d:refpos=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
 				}
 								
 			 }
@@ -156,6 +160,7 @@ int main(int argc, char *argv[])
 		}		
 
 	}
+
 
 	/*
 	ln = 0;

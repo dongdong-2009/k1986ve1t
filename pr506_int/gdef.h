@@ -35,6 +35,13 @@ struct STR_TELEMETRY
 	uint16_t cs;
 };
 
+struct STR_BUPR_TLM{
+	int16_t refpos;
+	int16_t pos;
+	uint16_t pcur;
+	uint16_t crc;
+};
+
 #define SW_PWROK     	(1<<15)
 #define SW_CONTRERR	  	(1<<14)
 #define SW_CONTRRDY	 	(1<<13)
