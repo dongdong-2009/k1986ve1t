@@ -12,6 +12,10 @@
 extern const int32_t cos_tb[1024];
 const char port_name[] =  "/dev/ttyUSB0";
 
+uint16_t tttt[] = {0x1234,0x0000,0x02af,0x03e8,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+				   0x001b,0x001b,0x000a,0x0000,0x0000,0x0001,0x0000,0x0000,0x0000,0x0000,
+				   0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x190a};
+
 /*
  * 'open_port()' - Open serial port 1.
  *
@@ -42,15 +46,15 @@ int init_port(void)
 	/* set raw input, 1 second timeout */
 	options.c_cflag     |= (CLOCAL | CREAD);
 	options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
-	options.c_oflag     &= ~OPOST;
+	options.c_oflag = 0; //&= ~OPOST;
 	options.c_cc[VMIN]  = 0;
 	options.c_cc[VTIME] = 0;
-	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
+	options.c_iflag = 0; //&= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
+	
+	//cfsetispeed(&options, B115200);
 	//cfsetispeed(&options, B500000);
-	//cfsetospeed(&options, B500000);
-	cfsetispeed(&options, B921600);
 	cfsetospeed(&options, B921600);	
 
 	/* set the options */
@@ -62,12 +66,11 @@ int init_port(void)
 uint16_t get_checksum(uint16_t *p, uint32_t n)
 {
 	int i;
-	uint16_t s = 0;
+	uint32_t s = 0;
 	for(i = 0; i < n; i++){
 		s += *p++;
-	}
-	
-	return (s+1);
+	}	
+	return 0xffff & (s+1);
 }
 
 uint16_t swpb(uint16_t val)
@@ -80,6 +83,7 @@ int main(int argc, char *argv[])
 	int ib = 0;
 	uint8_t bc;
 	uint8_t bp;	
+	uint32_t bm=0;
 	
 	uint8_t buf[128];
 	int fcom;
@@ -92,6 +96,8 @@ int main(int argc, char *argv[])
 	
 	uint16_t cw[6];
 	uint16_t tlm[32];
+	
+	uint32_t errcnt = 0;
 	
 	if(argc < 2){
 		printf("argument missed\n");
@@ -107,6 +113,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
+
 	while(1)
 	{
 		usleep(100000);
@@ -131,12 +138,14 @@ int main(int argc, char *argv[])
 			//printf("%d:%d:%d:%d:%d\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
 		}
 		//while(nb = read(fcom, &ch, 1))	putc(ch, stderr);
+		
 	
 		//fprintf(stderr,"telem:\n");
 		while(nb = read(fcom, &bc, 1))
 		{
-			if((bc==0x55) && (bp==0xaa)){
-				int is = (ib-(32*2+1))&127;
+			//if((bc==0x55) && (bp==0xaa)){
+			if(bm == 0xaa55aa55){
+				int is = (ib-(32*2+6))&127;
 				
 				for(i = 0; i < 32; i++){
 					uint8_t bh = buf[is]; is = (is+1)&127;
@@ -145,21 +154,48 @@ int main(int argc, char *argv[])
 				}
 
 				if(get_checksum(tlm, 31) == tlm[31]){
+					/*
 					for(i = 0; i < 31; i++){
 						printf("%04x:", tlm[i]);
-					}				
-					printf("%04x\r\n", tlm[i]);					
-					printf("t = %dms:pos = %d:refpos=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
+					}
+					printf("%04x\r\n", tlm[i]);
+					*/					
+					
+					
+					
+					static uint32_t tp;
+					uint32_t tc = (tlm[1]<<16)+tlm[2];
+					uint32_t dt = tc-tp;
+					tp = tc;		
+										
+					//printf("t = %dms:pos = %d:refpos=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
+					printf("t = %dms:pos = %d:refpos=%d:pcur=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7], (int16_t)tlm[12]);
+					//printf("pcur=%d\n", (int16_t)tlm[12]);
+					printf("dt=%dms\n", dt);
+					printf("crc errors=%d\n", errcnt);
+					
 				}
-								
+				else {
+					//printf("crc error detected\n");
+					/*printf("crc errors=%d\n", errcnt);
+					for(i = 0; i < 31; i++){
+						printf("%04x:", tlm[i]);
+					}
+					printf("%04x\r\n", tlm[i]);*/
+					
+					errcnt++;
+				}
 			 }
 			bp = bc;
+
+			bm = (bm<<8) | bc;
+
 			buf[ib] = bc;
 			ib = (ib+1)&127;
-			
-		}		
 
+		}
 	}
+
 
 
 	/*

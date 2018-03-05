@@ -18,10 +18,11 @@ void uart_init(void)
 	// UART_CLK = 120MHz
 	// rate = 500 k div = 120000/16/500 = 15.0
 	// rate = 1250 k div = 120000/16/1250 = 6.0
+	// rate = 1250 k div = 96000/16/1250 = 4.8
 	//UART1->IBRD = 15;											// 15
 	//UART1->FBRD = 0;											// round(0.0*2^6) = 0
-	UART1->IBRD = 6;											// 6
-	UART1->FBRD = 0;											// round(0.0*2^6) = 0
+	UART1->IBRD = 4;											// 4
+	UART1->FBRD = 51;											// round(0.8*2^6) = 51
 
 	UART1->IFLS &= ~(UART_IFLS_RXIFLSEL_MASK | UART_IFLS_TXIFLSEL_MASK);
 	UART1->IFLS |= (2 << UART_IFLS_RXIFLSEL_OFFS) | (2 << UART_IFLS_TXIFLSEL_OFFS);  // threshold for FIFO is 1/2

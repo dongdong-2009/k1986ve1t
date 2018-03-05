@@ -3,16 +3,16 @@
 #include "xprintf.h"
 #include "gdef.h"
 
-#define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
+//#define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
+#define CPU_PLL_MULT 12 // PLL_CLK 96 MHz for 8 MHz ext oscillator
 #define EEPROM_DEL 4
 #define SYS_TICKS 120000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
 // defs for mil_std_1533
-#define MIL_DIV 120
+#define MIL_DIV 48
 
 #define NUM_DW (32&0x1f)
-
 
 struct STR_TELEMETRY telemetry506_p1;
 struct STR_TELEMETRY telemetry506_p2;
@@ -23,10 +23,28 @@ int disp_idx = 0;
 
 //uint16_t array_cw[32]; // массив упр слов
 
-uint16_t array_tm[32] = {0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x3031, 0x3233, 0x3435, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x3031, 0x3233, 0x3435,
-						 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x3031, 0x3233, 0x3435, 0x3031, 0x3233, 0x3435, 0x3637, 0x3839, 0x3031, 0x3233, 0x0a0d,
-						 }; // массив телеметрии
+// массив телеметрии
+uint16_t array_tm[32] = {	0x1234,0x0000,0x02af,0x03e8,
+							0x0000,0x0000,0x0000,0x0000,
+							0x0000,0x0000,0x001b,0x001b,
+							0x000a,0x0000,0x0000,0x0001,
+							0x0000,0x0000,0x0000,0x0000,
+							0x0000,0x0000,0x0000,0x0000,
+							0x0000,0x0000,0x0000,0x0000,
+							0x0000,0x0000,0x0000,0x190d};
 
+
+/*
+uint16_t array_tm[32] = {0x3031, 0x3233, 0x3435, 0x3637, 
+						 0x3839, 0x3031, 0x3233, 0x3435, 
+						 0x3031, 0x3233, 0x3435, 0x3637, 
+						 0x3839, 0x3031, 0x3233, 0x3435,
+						 0x3031, 0x3233, 0x3435, 0x3637, 
+						 0x3839, 0x3031, 0x3233, 0x3435, 
+						 0x3031, 0x3233, 0x3435, 0x3637, 
+						 0x3839, 0x3031, 0x3233, 0x0a0d,
+						 };
+*/
 
 void ClkConfig(void);
 void PortConfig(void);
@@ -54,6 +72,46 @@ int sleep(uint32_t ms)
 {
 	uint32_t t = system_time + ms;
 	while(system_time < t);
+}
+
+void update_telemetry_loop(uint32_t t)
+{
+	struct STR_BUPR_TLM btlm;
+	struct STR_TELEMETRY *ptm = *(pdisp_tm+disp_idx);
+	int i;
+	//for(i = 0; i < 32; i++) ((uint16_t*)ptm)[i] = 0;
+	
+	uint8_t *pbtlm = (uint8_t*)&btlm;
+	
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+	*pbtlm++ = UART1->DR;
+
+	ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
+	ptm->tmh = 0xffff&(t>>16);
+	ptm->tml = 0xffff&t;
+	ptm->pos1 = DAC->DAC1_DATA;
+	ptm->pos2 = 0;
+	ptm->pos3 = 0;
+	ptm->cw = 0;
+	ptm->ref1 = control506.ref1;
+	ptm->ref2 = 0;
+	ptm->ref3 = 0;
+	ptm->uaux = 27;
+	ptm->upwr = 27;
+	ptm->impr1 = 10;
+	ptm->impr2 = 0;
+	ptm->impr3 = 0;
+	ptm->ipwr = 1;	
+	ptm->cs = get_checksum((uint16_t*)ptm, 31);
+	
+	disp_idx = disp_idx^1;			
+	
 }
 
 void update_telemetry(uint32_t t)
@@ -96,7 +154,7 @@ void update_telemetry(uint32_t t)
 		
 		disp_idx = disp_idx^1;			
 	}
-	
+
 	if(UART1->MIS & UART_MIS_RTMIS){
 		// error timeout
 		while(0 == (UART1->FR & UART_FR_RXFE)) {
@@ -186,6 +244,7 @@ int main()
 			cwready_flg = 0;
 		}
 		
+		//update_telemetry_loop(system_time);
 		update_telemetry(system_time);
 		
 		/*if(tlmready_flg){
@@ -245,6 +304,13 @@ void PortConfig()
 	PORTE->PWR |= (0x03 << (3<<1));		// max speed pe.3
 	PORTE->OE |= (1 << 3);				// pe.3 - выход
 	
+	//TP - pe0
+	PORTE->ANALOG |= 1<<0; 			// 
+	PORTE->FUNC &= ~(3 <<(0<<1));  	// цифровой порт
+	PORTE->PWR |= (0x03 << (0<<1));	// max speed pe.0
+	PORTE->OE |= (1 << 0);			// pe.0 - выход
+	PORTE->RXTX |= (1 << 0);
+	
 	// Настройка выводов UART1 PC.3 PC.4
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС ON
 	PORTC->FUNC &= ~( (0x03 << (3<<1)) | (0x03 << (4<<1)) );
@@ -287,7 +353,7 @@ void TimerConfig(void)
 	RST_CLK->TIM_CLOCK &= ~(0xff<<0); // TIM1_CLK = HCLK
 	
 	TIMER1->CNT = 0;
-	TIMER1->PSG = 120 - 1;  // prescaller
+	TIMER1->PSG = 96 - 1;  // prescaller
 	TIMER1->ARR = 1000 - 1;	// TIM1 period is 1ms
 	TIMER1->CCR1 = 500;
 
@@ -307,7 +373,7 @@ void TimerConfig(void)
 	
 	TIMER4->CNT = 0;
 	//TIMER4->PSG = 36*2 - 1;  // prescaller
-	TIMER4->PSG = 120 - 1;  // prescaller
+	TIMER4->PSG = 96 - 1;  // prescaller
 	TIMER4->ARR = 1000 - 1;	// TIM4 period
 	
 	TIMER4->IE |= TIMER_IE_CNT_ARR_EVENT_IE;					// прерывание по событию  ARR=CNT
@@ -323,7 +389,7 @@ void mil_std_1533_init_rt(void)
 	uint32_t *pw = (uint32_t*)(MIL_STD_15531_BASE+0x80);
 	
 	RST_CLK->PER_CLOCK |= (1 << 9);								// clock mil_1533 on
-	RST_CLK->ETH_CLOCK |= (1 << 25);							// clock mil_1533 enable
+	RST_CLK->ETH_CLOCK |= (1 << 25) + (0x01 << 8);				// clock mil_1533 enable, mil_clk = hclk/2
 	
 	MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_MR;
 	//MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_TRA | MIL_STD_1553_CONTROL_BCMODE | (MIL_DIV<<11); // КШ
@@ -370,6 +436,7 @@ void TIMER4_Handler(void)
 	//disp_idx = disp_idx^1;
 	
 	tlmready_flg = 1;
+	//PORTE->RXTX ^= (1 << 0);
 }
 
 extern void mil_cpy(uint16_t *pt);
@@ -379,7 +446,8 @@ void MIL_STD_1553B1_Handler(void)
 	int i;
 	uint32_t *pw = (uint32_t*)(MIL_STD_15531_BASE+RT_SBADDR*0x80);
 
-
+	//PORTE->RXTX ^= (1 << 0);
+	
 	//PORTD->RXTX |= 0xffff;
 
 	if(MIL_STD_15531->STATUS & MIL_STD_1553_STATUS_RFLAGN){
@@ -387,8 +455,11 @@ void MIL_STD_1553B1_Handler(void)
 		//if(MIL_STD_15531->CommandWord1 & (1<<10)){
 		if(MIL_STD_15531->MSG == 0x402){
 			// КШ запрашивает данные телеметрии
-			PORTD->RXTX |= 0xffff;
+			
+			//PORTE->RXTX ^= (1 << 0);
+			
 			uint16_t *pt = (uint16_t *)*(pdisp_tm+(disp_idx^1));
+			//uint16_t *pt = array_tm;
 			/*for(i = 0; i < 32; i++){
 				//*pw++ = array_tm[i];
 				*pw++ = *pt++;
@@ -440,6 +511,7 @@ void MIL_STD_1553B1_Handler(void)
 		//if(MIL_STD_15531->CommandWord1 & (1<<10))
 		if(MIL_STD_15531->MSG == 0x402)
 		{
+			PORTE->RXTX ^= (1 << 0);
 			// закончили передавать запрошенную телеметрию к КШ
 			/*uint16_t *pt = (uint16_t *)*(pdisp_tm+(disp_idx^1));
 			for(i = 0; i < 32; i++){
@@ -453,6 +525,9 @@ void MIL_STD_1553B1_Handler(void)
 			uint32_t nw = MIL_STD_15531->CommandWord1 & 0x1f;
 			uint16_t cs = 0;
 			uint16_t *pcw = (uint16_t*)&control506;
+			
+			//PORTE->RXTX ^= (1 << 0);
+			
 			// получили управляющий массив от КШ
 			if(cwready_flg == 0){
 				if(nw <= 32){

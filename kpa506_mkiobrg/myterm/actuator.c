@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 					printf("%04x:", tlm[i]);
 				}				
 				printf("%04x\r\n", tlm[i]);
-				printf("t = %dms:pos = %d:refpos=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
+				printf("t = %dms:pos = %d:refpos=%d:pcur=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7], (int16_t)tlm[12]);
 			}
 							
 		 }

@@ -1,7 +1,7 @@
 #include "opora.h"
 #include "gdef.h"
 
-  
+
 char tx_buf[BUF_SIZE];
 int  tx_idx = 0;
 int  tx_wr_idx = 0;
@@ -23,9 +23,17 @@ void uart_init(void)
 	// UART_CLK = 120MHz
 	// rate = 500 k div = 120000/16/500 = 15.0
 	// rate = 921.6 k div = 120000/16/921.6 = 8.138
+	// rate = 921.6 k div = 96000/16/921.6 = 6.5104
+	// rate = 115200 k div = 120000/16/115.2 = 65.1042
 	
-	UART2->IBRD = 8;											// 8
-	UART2->FBRD = 9;											// round(0.138*2^6) = 9
+	UART2->IBRD = 6;											// 6
+	UART2->FBRD = 33;											// round(0.5104*2^6) = 33
+	
+	//UART2->IBRD = 15;											// 8
+	//UART2->FBRD = 0;											// round(0.138*2^6) = 9
+	
+	//UART2->IBRD = 65;											// 65
+	//UART2->FBRD = 7;											// round(0.1042*2^6) = 7	
 
 	UART2->IFLS &= ~(UART_IFLS_RXIFLSEL_MASK | UART_IFLS_TXIFLSEL_MASK);
 	UART2->IFLS |= (4 << UART_IFLS_RXIFLSEL_OFFS) | (4 << UART_IFLS_TXIFLSEL_OFFS);  // threshold for FIFO is 7/8
@@ -62,7 +70,7 @@ int uart_read(char *pb, int nb)
         
         // flow control
 		int bsz = uart_bsz();				
-		if(bsz < BUF_TH_UP) PORTE->OE |= (1 << 7); // enable flow
+		if(bsz < BUF_TH_UP) PORTE->RXTX &= ~(1 << 7); // enable flow
         
         return i;
 }
@@ -121,7 +129,7 @@ void UART2_Handler(void)
 		
 		// flow control
 		int bsz = uart_bsz();				
-		if(bsz > BUF_TH_DOWN)	PORTE->OE &= ~(1 << 7); // disable flow
+		if(bsz > BUF_TH_DOWN)	PORTE->RXTX |= (1 << 7); // disable flow
 
 	}        	
 }
