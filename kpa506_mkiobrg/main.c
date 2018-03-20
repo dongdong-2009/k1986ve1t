@@ -113,9 +113,9 @@ uint16_t swpb(uint16_t val)
 void test_cw(uint16_t *cw)
 {
 	uint16_t cx = (1<<5)+(0<<3)+(0<<1);
-	uint16_t val1 = 0x1234;
-	uint16_t val2 = 0x1234;
-	uint16_t val3 = 0x1234;
+	uint16_t val1 = 1000;
+	uint16_t val2 = 1000;
+	uint16_t val3 = 1000;
 	uint16_t cs = cx+val1+val2+val3+1;
 		
 	cw[0] = swpb(cx);
@@ -136,6 +136,7 @@ int main()
 	uint8_t bp;
 	uint16_t cw[6];
 	uint32_t cwi = 0;
+	
 	
 	SystemInit();	
 	xdev_out(uart_putch);
@@ -162,41 +163,51 @@ int main()
 	{
 		if(marker_flg == 0){
 		
-			/*bc = ((uint8_t*)cw)[cwi];
-			cwi = (cwi >= 11)?cwi=0:cwi+1;*/
+			//bc = ((uint8_t*)cw)[cwi];
+			//cwi = (cwi >= 11)?cwi=0:cwi+1;
 			if(uart_read(&bc, 1))
 			{
+				//bc = ((uint8_t*)cw)[cwi];
+				//cwi = (cwi >= 11)?cwi=0:cwi+1;				
+				
 				if((bc==0x55) && (bp==0xaa)){
 					int is = (ib-(NUM_DW*2+1) )&127;
 					uint32_t *pw = (uint32_t*)(MIL_STD_15531_BASE+0x80);
-					
+
 					for(i = 0; i < NUM_DW; i++){
 						uint8_t bh = buf[is]; is = (is+1)&127;
 						uint8_t bl = buf[is]; is = (is+1)&127;
 						*pw++ = bl+(bh<<8);
+						
+						cw[i] = bl+(bh<<8);
 					}
+					
 					marker_flg = 2;
-					//PORTE->RXTX ^= (1 << 6);
+
+					if(cw[4] != get_checksum(cw, 4))
+						PORTE->RXTX ^= (1 << 6);
+
 				 }
 				bp = bc;
 				buf[ib] = bc;
 				ib = (ib+1)&127;
-				
+
 				//int bsz = uart_bsz();				
 				//if(bsz > BUF_TH_DOWN)	PORTE->OE &= ~(1 << 7); 				
 				//else if(bsz < BUF_TH_UP) PORTE->OE |= (1 << 7); 
 				//xprintf("%d\n", bsz);
 			}
 		}
-		
+
 		if(tlm_flg){
 			uint8_t ss[] = {0,0};
 
 			uart_send((uint8_t*)array_tm2, NUM_DW_TM*2);
 			//uart_send((uint8_t*)tttt, NUM_DW_TM*2);
-			uart_send(ss, 2);			
 			uart_send(marker_seq, 2);
+			/*uart_send(ss, 2);			
 			uart_send(marker_seq, 2);
+			uart_send(marker_seq, 2);*/
 			tlm_flg = 0;
 			if(array_tm2[31] != get_checksum(array_tm2, 31)) crcerrcnt ++;
 		}		
@@ -374,7 +385,7 @@ void MIL_STD_1553B1_Handler(void)
 	
 	if(MIL_STD_15531->STATUS & MIL_STD_1553_STATUS_ERR){
 		errf = MIL_STD_15531->ERROR;
-		PORTE->RXTX ^= (1 << 6);
+		//PORTE->RXTX ^= (1 << 6);
 		milerrcnt++;
 	}
 	

@@ -65,12 +65,6 @@ SECTIONS
 	{
 		. = . + _stack_size;
 	} > RAM1
-	
-    .dma_sec (NOLOAD):
-    {
-        . = ALIGN(1024);
-        *(.dma_sec)
-    } >RAM2    		
 } 
 
 /*ENTRY(handler_reset);*/

@@ -56,9 +56,8 @@ int init_port(void)
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
 	
 	//cfsetispeed(&options, B115200);
-	cfsetispeed(&options, B500000);
-	//cfsetispeed(&options, B1000000);
-	//cfsetospeed(&options, B921600);	
+	//cfsetispeed(&options, B500000);
+	cfsetospeed(&options, B921600);	
 
 	/* set the options */
 	tcsetattr(fd, TCSANOW, &options);
@@ -121,13 +120,12 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{
-		usleep(100000);
-		for(i = 0; i < 21; i++)
+		//usleep(1000000);
+		//for(i = 0; i < 21; i++)
 		// writing command word loop
-		//while(1)
+		while(1)
 		{
-			//if(ntowrite == 0)
-			{
+			if(ntowrite == 0){
 				phase = (phase+freq) & 1023;
 
 				uint16_t cx = (1<<5)+(0<<3)+(0<<1);
@@ -136,35 +134,31 @@ int main(int argc, char *argv[])
 				uint16_t val3 = cos_tb[(phase+2*1024/3)&1023];
 				uint16_t cs = cx+val1+val2+val3+1;
 
-				cw[0] = swpb(cx);
+				/*cw[0] = swpb(cx);
 				cw[1] = swpb(val1);
 				cw[2] = swpb(val2);
 				cw[3] = swpb(val3);
 				cw[4] = swpb(cs);
-				cw[5] = 0x55aa;
+				cw[5] = 0x55aa;*/
 
-				/*cw[0] = cx;
+				cw[0] = cx;
 				cw[1] = val1;
 				cw[2] = val2;
 				cw[3] = val3;
 				cw[4] = cs;
-				cw[5] = 0x55aa;*/
-
+				cw[5] = 0x55aa;
+				
 				ntowrite = 12;
 				idw = 0;
 			}			
 
-			nwritten = write(fcom, (uint8_t*)cw, sizeof(cw));
-			/*nwritten = write(fcom, ((uint8_t*)cw)+idw, ntowrite);
-			if(nwritten < ntowrite){
-				fprintf(stderr, "break\n");
-				idw = nwritten;
-				ntowrite = 12-nwritten;				
+			//nwritten = write(fcom, cw, sizeof(cw));
+			nwritten = write(fcom, ((uint8_t*)cw)+idw, ntowrite);
+			idw = nwritten;
+			ntowrite = 12-nwritten;
+			if(nwritten < sizeof(cw)){
 				break;
-			}			
-			ntowrite = 0;*/
-
-
+			}
 			//printf("%d:%d:%d:%d:%d\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
 		}
 		//while(nb = read(fcom, &ch, 1))	putc(ch, stderr);

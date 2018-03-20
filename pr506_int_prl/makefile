@@ -27,9 +27,6 @@ CPFLAGS = -Obinary
 all: blink.bin
 	@echo $(IMAGE)
 
-adc_dma.o: adc_dma.c
-	$(CC) $(CFLAGS) -O0 -o adc_dma.o adc_dma.c
-
 xprintf.o: xprintf.c gdef.h
 	$(CC) $(CFLAGS) -o $@ $<
 
@@ -45,7 +42,7 @@ mil.o: mil.c gdef.h
 main.o: main.c gdef.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-blink.elf: main.o startup.o uart.o xprintf.o mil.o adc_dma.o
+blink.elf: main.o startup.o uart.o xprintf.o mil.o
 	$(LD) $(LFLAGS) -Map blink.map -o $@ $^ $(LIBS)
 
 blink.bin: blink.elf

@@ -1,0 +1,13 @@
+#!/usr/bin/gnuplot --persist
+
+set grid ytics lc rgb "#bbbbbb" lw 1 lt 0
+set grid xtics lc rgb "#bbbbbb" lw 1 lt 0
+
+set multiplot layout 2,1
+set title 'position'
+set xlabel 's'
+plot 'log.dat' using 1:2 w line
+
+set title 'reference'
+set xlabel 's'
+plot 'log.dat' using 1:3 w line

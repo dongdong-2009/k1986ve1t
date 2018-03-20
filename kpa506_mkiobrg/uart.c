@@ -20,17 +20,17 @@ void uart_init(void)
 	RST_CLK->PER_CLOCK |= (1 << 7);								// enable clock UART2
 	RST_CLK->UART_CLOCK |= (1 << 25);	
 		
-	// UART_CLK = 120MHz
-	// rate = 500 k div = 120000/16/500 = 15.0
-	// rate = 921.6 k div = 120000/16/921.6 = 8.138
+	// UART_CLK = 96MHz
+	// rate = 1000 k div = 96000/16/1000 = 6.0
+	// rate = 500 k div = 96000/16/500 = 12.0
 	// rate = 921.6 k div = 96000/16/921.6 = 6.5104
-	// rate = 115200 k div = 120000/16/115.2 = 65.1042
+	// rate = 115200 k div = 96000/16/115.2 = 52.083
 	
-	UART2->IBRD = 6;											// 6
-	UART2->FBRD = 33;											// round(0.5104*2^6) = 33
+	//UART2->IBRD = 6;											// 6
+	//UART2->FBRD = 33;											// round(0.5104*2^6) = 33
 	
-	//UART2->IBRD = 15;											// 8
-	//UART2->FBRD = 0;											// round(0.138*2^6) = 9
+	UART2->IBRD = 12;
+	UART2->FBRD = 0;
 	
 	//UART2->IBRD = 65;											// 65
 	//UART2->FBRD = 7;											// round(0.1042*2^6) = 7	
@@ -45,7 +45,7 @@ void uart_init(void)
 	//UART2->IMSC |= (UART_IMSC_RXIM | UART_IMSC_TXIM);
 	UART2->IMSC |= (UART_IMSC_RXIM);
 	NVIC_EnableIRQ(UART2_IRQn);
-}	
+}
 
 void uart_putch(char ch)
 {

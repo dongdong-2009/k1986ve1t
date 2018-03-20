@@ -48,8 +48,8 @@ int init_port(void)
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
-	cfsetispeed(&options, B921600);
-	cfsetospeed(&options, B921600);
+	//cfsetispeed(&options, B921600);
+	cfsetispeed(&options, B500000);
 
 	/* set the options */
 	tcsetattr(fd, TCSANOW, &options);

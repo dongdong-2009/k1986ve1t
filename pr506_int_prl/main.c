@@ -14,22 +14,14 @@
 
 #define NUM_DW (32&0x1f)
 
-extern void adc_dma_init(void);
-extern void adc_dma_start(void);
-extern void adc_dma_wait(void);
-extern int adc_dma_check(void);
-extern uint32_t adc_dma_buffer[8];
-
 struct STR_TELEMETRY telemetry506_p1;
 struct STR_TELEMETRY telemetry506_p2;
 struct STR_CONTROL control506;
 
+uint16_t test_cnt[8] = {0,1,2,0,3,0,0,0};
+
 struct STR_TELEMETRY *pdisp_tm[2] = {0, 0};
 int disp_idx = 0;
-
-uint32_t milerrcnt = 0;
-uint32_t milfrmcnt = 0;
-uint32_t crcerrcnt = 0;
 
 //uint16_t array_cw[32]; // массив упр слов
 
@@ -84,8 +76,6 @@ int sleep(uint32_t ms)
 	while(system_time < t);
 }
 
-
-/*
 void update_telemetry_loop(uint32_t t)
 {
 	struct STR_BUPR_TLM btlm;
@@ -102,18 +92,18 @@ void update_telemetry_loop(uint32_t t)
 	*pbtlm++ = UART1->DR;
 	*pbtlm++ = UART1->DR;
 	*pbtlm++ = UART1->DR;
-	*pbtlm++ = UART1->DR;	
+	*pbtlm++ = UART1->DR;
 
 	ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
 	ptm->tmh = 0xffff&(t>>16);
 	ptm->tml = 0xffff&t;
-	ptm->pos1 = control506.ref1;
-	ptm->pos2 = control506.ref1;
-	ptm->pos3 = control506.ref1;
+	ptm->pos1 = DAC->DAC1_DATA;
+	ptm->pos2 = 0;
+	ptm->pos3 = 0;
 	ptm->cw = 0;
 	ptm->ref1 = control506.ref1;
-	ptm->ref2 = control506.ref1;
-	ptm->ref3 = control506.ref1;
+	ptm->ref2 = 0;
+	ptm->ref3 = 0;
 	ptm->uaux = 27;
 	ptm->upwr = 27;
 	ptm->impr1 = 10;
@@ -122,102 +112,20 @@ void update_telemetry_loop(uint32_t t)
 	ptm->ipwr = 1;	
 	ptm->cs = get_checksum((uint16_t*)ptm, 31);
 	
-	disp_idx = disp_idx^1;				
+	disp_idx = disp_idx^1;			
+	
 }
-*/
-
-void update_telemetry_loop(uint32_t t)
-{
-	static struct STR_BUPR_TLM btlm[4];
-	struct STR_TELEMETRY *ptm = *(pdisp_tm+disp_idx);
-	int i;
-	int cidx = 0;
-	//for(i = 0; i < 32; i++) ((uint16_t*)ptm)[i] = 0;
-	
-	i = 0x7 & (TIMER1->STATUS >> 9);
-	if(i == 0) return;
-	
-	cidx = i&3 | ((i>>1)&2) | ((i>>2)&1);
-	TIMER1->STATUS = 0;			
-	
-			
-	if(UART1->MIS & UART_MIS_RXMIS)
-	{       
-		uint8_t *pbtlm = (uint8_t*)&btlm[cidx];
-		
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-		*pbtlm++ = UART1->DR;
-	}
-
-	if(UART1->MIS & UART_MIS_RTMIS){
-		// error timeout
-		while(0 == (UART1->FR & UART_FR_RXFE)) {
-			char buf = UART1->DR; // empting the fifo
-		}
-	}	
-
-	if(cidx == 3){
-		
-		static uint16_t ipwr = 0;
-		static uint16_t upwr = 0;
-		static uint16_t u27 = 0;
-
-		if(adc_dma_check()){
-			ipwr = adc_dma_buffer[0];
-			upwr = adc_dma_buffer[1];
-			u27 = adc_dma_buffer[2];
-			adc_dma_start();
-		}
-		
-		// update telemetry arrray
-		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
-		ptm->tmh = 0xffff&(t>>16);
-		ptm->tml = 0xffff&t;
-		ptm->pos1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->pos2 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->pos3 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->cw = 0;
-		ptm->ref1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->ref2 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->ref3 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->uaux = u27;
-		ptm->upwr = upwr;
-		ptm->impr1 = btlm[1].pcur;
-		ptm->impr2 = btlm[2].pcur;
-		ptm->impr3 = btlm[3].pcur;
-		ptm->ipwr = ipwr;	
-		ptm->cs = get_checksum((uint16_t*)ptm, 31);
-		
-		disp_idx = disp_idx^1;		
-		
-	}
-}
-
 
 void update_telemetry(uint32_t t)
 {
-	static struct STR_BUPR_TLM btlm[4];
+	struct STR_BUPR_TLM btlm;
 	struct STR_TELEMETRY *ptm = *(pdisp_tm+disp_idx);
 	int i;
-	int cidx = 0;
 	//for(i = 0; i < 32; i++) ((uint16_t*)ptm)[i] = 0;
 	
-	i = 0x7 & (TIMER1->STATUS >> 9);
-	if(i == 0) return;
-	
-	cidx = i&3 | ((i>>1)&2) | ((i>>2)&1);
-	TIMER1->STATUS = 0;			
-	
-			
 	if(UART1->MIS & UART_MIS_RXMIS)
 	{       
-		uint8_t *pbtlm = (uint8_t*)&btlm[cidx];
+		uint8_t *pbtlm = (uint8_t*)&btlm;
 		
 		*pbtlm++ = UART1->DR;
 		*pbtlm++ = UART1->DR;
@@ -227,6 +135,26 @@ void update_telemetry(uint32_t t)
 		*pbtlm++ = UART1->DR;
 		*pbtlm++ = UART1->DR;
 		*pbtlm++ = UART1->DR;
+
+		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
+		ptm->tmh = 0xffff&(t>>16);
+		ptm->tml = 0xffff&t;
+		ptm->pos1 = btlm.pos;
+		ptm->pos2 = 0;
+		ptm->pos3 = 0;
+		ptm->cw = 0;
+		ptm->ref1 = btlm.refpos;
+		ptm->ref2 = 0;
+		ptm->ref3 = 0;
+		ptm->uaux = 27;
+		ptm->upwr = 27;
+		ptm->impr1 = btlm.pcur;
+		ptm->impr2 = 0;
+		ptm->impr3 = 0;
+		ptm->ipwr = 1;	
+		ptm->cs = get_checksum((uint16_t*)ptm, 31);
+		
+		disp_idx = disp_idx^1;			
 	}
 
 	if(UART1->MIS & UART_MIS_RTMIS){
@@ -235,47 +163,16 @@ void update_telemetry(uint32_t t)
 			char buf = UART1->DR; // empting the fifo
 		}
 	}	
-
-	if(cidx == 3){
-		
-		static uint16_t ipwr = 0;
-		static uint16_t upwr = 0;
-		static uint16_t u27 = 0;
-
-		if(adc_dma_check()){
-			ipwr = adc_dma_buffer[0];
-			upwr = adc_dma_buffer[1];
-			u27 = adc_dma_buffer[2];
-			adc_dma_start();
-		}
-		
-		// update telemetry arrray
-		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
-		ptm->tmh = 0xffff&(t>>16);
-		ptm->tml = 0xffff&t;
-		ptm->pos1 = btlm[1].pos;
-		ptm->pos2 = btlm[2].pos;
-		ptm->pos3 = btlm[3].pos;
-		ptm->cw = 0;
-		ptm->ref1 = btlm[1].refpos;
-		ptm->ref2 = btlm[2].refpos;
-		ptm->ref3 = btlm[3].refpos;
-		ptm->uaux = u27;
-		ptm->upwr = upwr;
-		ptm->impr1 = btlm[1].pcur;
-		ptm->impr2 = btlm[2].pcur;
-		ptm->impr3 = btlm[3].pcur;
-		ptm->ipwr = ipwr;	
-		ptm->cs = get_checksum((uint16_t*)ptm, 31);
-		
-		disp_idx = disp_idx^1;		
-		
-	}
 }
 
 void send_command(struct STR_CONTROL *pc)
 {
-	uint8_t com[8];
+	
+	test_cnt[1] = pc->ref1;
+	test_cnt[2] = pc->ref2;
+	test_cnt[4] = pc->ref3;
+	
+/*	uint8_t com[8];
 	uint16_t buf = pc->ref1;
 	uint8_t *pb = com;
 	
@@ -287,37 +184,6 @@ void send_command(struct STR_CONTROL *pc)
 	UART1->DR = (pc->ref3>>8) & 0xff;	
 	UART1->DR = 0;
 	UART1->DR = 0;
-
-	/*com[0] = pc->ref1 & 0xff;
-	com[1] = (pc->ref1>>8) & 0x0f;
-	com[1] |= (pc->ref2<<4) & 0xf0;
-	com[2] = (pc->ref2>>4) & 0xff;
-	com[3] = pc->ref3 & 0xff;
-	com[4] = (pc->ref3>>8) & 0x0f;
-	
-	com[5] = 0x00;
-	com[6] = 0x00;
-	com[7] = 0x00;
-	*/
-
-	/*
-	com[0] = 0x21;
-	com[1] = 0x43;
-	com[2] = 0x56;
-	com[3] = 0x87;
-	com[4] = 0xa9;
-	*/
-
-	//uart_send(com, sizeof(com));
-	/*
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;	
 	*/
 }
 
@@ -362,7 +228,6 @@ int main()
 			tlmready_flg = 0;
 		}*/
 		
-			
 		
 	}
 }
@@ -370,18 +235,22 @@ int main()
 //--- Ports configuration ---
 void PortConfig()
 {
-	/*RST_CLK->PER_CLOCK|=1<<24;	 				//clock of PORTD ON
+	// port A
+	RST_CLK->PER_CLOCK|=1<<21;	 				//clock of PORTA ON
+	
+	// pa.3 - test out
+	PORTA->FUNC &= (1<<3);
+	PORTA->OE |= (1<<3);
+	PORTA->ANALOG |= (1<<3);
+	PORTA->PWR |= (0x03<<(3<<1));
+		
+	RST_CLK->PER_CLOCK|=1<<24;	 				//clock of PORTD ON
 	
 	PORTD->FUNC = 0x00000000;  		// функция - порт
 	PORTD->RXTX = 0x0000;	     	// очищаем выход
 	PORTD->OE = 0x7F80;				// порт на выход
-	PORTD->ANALOG = 0x7F80;			// port is digital mode
-	PORTD->PWR = 0x3FFFC000;		// max power of port
-	*/
-	
-	// inputs for adc portd
-	RST_CLK->PER_CLOCK |= 1<<24;	 		  //clock of PORTD ON
-	PORTD->ANALOG &= ~( (1<<11) + (1<<12) + (1<<13) );  // PD11 - ADC4, PD12 - ADC5, PD13 - ADC6	
+	PORTD->ANALOG = 0x7F80;			/* port is digital mode */
+	PORTD->PWR = 0x3FFFC000;		/* max power of port */
 	
 	// Setting for mil-std-1533 1 pins
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС on
@@ -411,20 +280,20 @@ void PortConfig()
 					
 	// выход для dac0
 	RST_CLK->PER_CLOCK |= 1<<25;	 				//clock of PORTE ON					
-	PORTE->ANALOG &= ~(1<<1); 	// pe1 - dac0 out	
+	PORTE->FUNC = 0;
+	//PORTE->ANALOG &= ~(1<<1); 	// pe1 - dac0 out	
 
 	PORTE->ANALOG |= 1<<3; 		// pe3 - TMR1_CH1 out
-	PORTE->FUNC &= ~(3 <<(3<<1));  // цифровой порт
+	PORTE->FUNC &= ~(3 <<(3<<1));
 	PORTE->FUNC |= (1 << (3<<1));  // основная функция - TMR1_CH1	
 	PORTE->PWR |= (0x03 << (3<<1));		// max speed pe.3
 	PORTE->OE |= (1 << 3);				// pe.3 - выход
 	
-	//TP - pe0
-	PORTE->ANALOG |= 1<<0; 			// 
-	PORTE->FUNC &= ~(3 <<(0<<1));  	// цифровой порт
-	PORTE->PWR |= (0x03 << (0<<1));	// max speed pe.0
-	PORTE->OE |= (1 << 0);			// pe.0 - выход
-	PORTE->RXTX |= (1 << 0);
+	//data bus - pe4...pe15
+	PORTE->ANALOG |= 0xfff0;
+	PORTE->PWR |= 0xffffff00;
+	PORTE->OE |= 0xfff0;	
+	PORTE->RXTX = 0;
 	
 	// Настройка выводов UART1 PC.3 PC.4
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС ON
@@ -433,8 +302,6 @@ void PortConfig()
 	PORTC->ANALOG |= (1 << 3) | (1 << 4);					// PC.3 PC.4 - цифровой режим
 	PORTC->PWR |= (0x03 << (3<<1)) | (0x03 << (4<<1));		// max speed PC.3 PC.4
 	PORTC->RXTX &= ~((1 << 3) | (1 << 4));	     			// очищаем выход	
-	PORTC->PULL |= 1<<(4+16); //pc4 - pull up
-	
 }
 
 void dac_init()
@@ -472,16 +339,16 @@ void TimerConfig(void)
 	TIMER1->CNT = 0;
 	TIMER1->PSG = 96 - 1;  // prescaller
 	TIMER1->ARR = 1000 - 1;	// TIM1 period is 1ms
-	TIMER1->CCR1 = 400;
-	TIMER1->CCR2 = 700;
-	TIMER1->CCR3 = 990;
+	TIMER1->CCR1 = 250;
+	TIMER1->CCR2 = 500;
+	TIMER1->CCR3 = 750;
 
 	TIMER1->CH1_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;
 	TIMER1->CH1_CNTRL |= (7 << TIMER_CH_CNTRL_OCCM_OFFS);									// 111: 0, если DIR= 0 (счет вверх), CNT<CCR, иначе 1	
 	TIMER1->CH1_CNTRL1 &= ~(TIMER_CH_CNTRL1_SELO_MASK | TIMER_CH_CNTRL1_SELOE_MASK);		// настройка прямого выхода канала 1
 	TIMER1->CH1_CNTRL1 |= (3 << TIMER_CH_CNTRL1_SELO_OFFS);	    							// на прямой выход канала 1 идет REF 
 	TIMER1->CH1_CNTRL1 |= (1 << TIMER_CH_CNTRL1_SELOE_OFFS);	    						// прямой выход канала 1 всегда работает на выход на OE всегда 1	
-	
+
 	TIMER1->CH2_CNTRL &= ~TIMER_CH_CNTRL_OCCM_MASK;
 	TIMER1->CH2_CNTRL |= (7 << TIMER_CH_CNTRL_OCCM_OFFS);									// 111: 0, если DIR= 0 (счет вверх), CNT<CCR, иначе 1	
 	TIMER1->CH2_CNTRL1 &= ~(TIMER_CH_CNTRL1_SELO_MASK | TIMER_CH_CNTRL1_SELOE_MASK);		// настройка прямого выхода канала 1
@@ -492,9 +359,10 @@ void TimerConfig(void)
 	TIMER1->CH3_CNTRL |= (7 << TIMER_CH_CNTRL_OCCM_OFFS);									// 111: 0, если DIR= 0 (счет вверх), CNT<CCR, иначе 1	
 	TIMER1->CH3_CNTRL1 &= ~(TIMER_CH_CNTRL1_SELO_MASK | TIMER_CH_CNTRL1_SELOE_MASK);		// настройка прямого выхода канала 1
 	TIMER1->CH3_CNTRL1 |= (3 << TIMER_CH_CNTRL1_SELO_OFFS);	    							// на прямой выход канала 1 идет REF 
-	TIMER1->CH3_CNTRL1 |= (1 << TIMER_CH_CNTRL1_SELOE_OFFS);	    						// прямой выход канала 1 всегда работает на выход на OE всегда 1			
+	TIMER1->CH3_CNTRL1 |= (1 << TIMER_CH_CNTRL1_SELOE_OFFS);	    						// прямой выход канала 1 всегда работает на выход на OE всегда 1		
 	
 	TIMER1->IE |= 0x07 << TIMER_IE_CCR_REF_EVENT_IE_OFFS;
+	NVIC_EnableIRQ(TIMER1_IRQn);
 	
 	TIMER1->CNTRL = TIMER_CNTRL_CNT_EN; 						// start count up
 	
@@ -528,7 +396,7 @@ void mil_std_1533_init_rt(void)
 	//MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_TRA | MIL_STD_1553_CONTROL_BCMODE | (MIL_DIV<<11); // КШ
 	MIL_STD_15531->CONTROL = MIL_STD_1553_CONTROL_TRA | MIL_STD_1553_CONTROL_TRB | 
 							 MIL_STD_1553_CONTROL_RTMODE | (RT_ADDR<<6) | (MIL_DIV<<11); // ОУ
-	MIL_STD_15531->INTEN |= MIL_STD_1553_INTEN_ERRIE; // errors int enable
+	//MIL_STD_15531->INTEN |= MIL_STD_1553_INTEN_ERRIE; // errors int enable
 	MIL_STD_15531->INTEN |= MIL_STD_1553_INTEN_VALMESSIE | MIL_STD_1553_INTEN_RFLAGNIE; //
 	NVIC_EnableIRQ(MIL_STD_1553B1_IRQn);
 
@@ -553,14 +421,20 @@ void SystemInit(void)
 	//SysTick_Config(SYS_TICKS);
 	mil_std_1533_init_rt();
 	dac_init();				
-	
-	adc_dma_init();
-	adc_dma_start();
 }	
 
 void SysTick_Handler(void)
 {
 	system_time ++;
+}
+
+void TIMER1_Handler(void)
+{
+	register uint32_t i = 0x07&(TIMER1->STATUS >> 9);
+	TIMER1->STATUS = 0;	
+	PORTE->RXTX = test_cnt[i] << 4;
+	
+	PORTA->RXTX ^= (1 << 3);	
 }
 
 void TIMER4_Handler(void)
@@ -573,7 +447,6 @@ void TIMER4_Handler(void)
 	
 	tlmready_flg = 1;
 	//PORTE->RXTX ^= (1 << 0);
-	
 }
 
 extern void mil_cpy(uint16_t *pt);
@@ -637,19 +510,18 @@ void MIL_STD_1553B1_Handler(void)
 			*pw++ = *pt++;
 			*pw++ = *pt++;
 
-			//PORTD->RXTX &= ~0xffff;
+			PORTD->RXTX &= ~0xffff;
 		}
 		//xprintf("%x\n", MIL_STD_15531->MSG);
 	}	
 
 	if(MIL_STD_15531->STATUS & MIL_STD_1553_STATUS_VALMESS){
 		// произошло успешное окончание транзакции
-		milfrmcnt++;
 		
 		//if(MIL_STD_15531->CommandWord1 & (1<<10))
 		if(MIL_STD_15531->MSG == 0x402)
 		{
-			//PORTE->RXTX ^= (1 << 0);
+			PORTE->RXTX ^= (1 << 0);
 			// закончили передавать запрошенную телеметрию к КШ
 			/*uint16_t *pt = (uint16_t *)*(pdisp_tm+(disp_idx^1));
 			for(i = 0; i < 32; i++){
@@ -674,9 +546,6 @@ void MIL_STD_1553B1_Handler(void)
 					}
 					cs = get_checksum(pcw, nw-1);
 					cwready_flg = (control506.cs == cs);
-					
-					if(control506.cs != cs)
-						PORTE->RXTX ^= (1 << 0);
 				}
 				
 				//uart_send((uint8_t*)array_cw, nw*2);
@@ -687,13 +556,5 @@ void MIL_STD_1553B1_Handler(void)
 		}
 	}
 	
-	uint32_t errf;
-	
-	if(MIL_STD_15531->STATUS & MIL_STD_1553_STATUS_ERR){
-		// транзакция завершилась с ошибкой
-		/*errf = MIL_STD_15531->ERROR;
-		PORTE->RXTX ^= (1 << 0);
-		milerrcnt++;*/
-	}
-	
+	//PORTD->RXTX &= ~0xffff;
 }
