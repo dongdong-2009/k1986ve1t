@@ -773,7 +773,7 @@ Disassembly of section .text:
      6c6:	4b0e      	ldr	r3, [pc, #56]	; (700 <main+0xdc>)
      6c8:	681b      	ldr	r3, [r3, #0]
      6ca:	0018      	movs	r0, r3
-     6cc:	f7ff fe54 	bl	378 <update_telemetry>
+     6cc:	f7ff fd52 	bl	174 <update_telemetry_loop>
      6d0:	e7c7      	b.n	662 <main+0x3e>
      6d2:	46c0      	nop			; (mov r8, r8)
      6d4:	00001e48 	.word	0x00001e48

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+NCW=1000
+FREQ=1
+
+sudo ./freqresp $FREQ $NCW > log.dat
+
+./plot_chart

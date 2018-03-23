@@ -10,7 +10,7 @@
 #include <stdlib.h>
 
 extern const int32_t cos_tb[1024];
-const char port_name[] =  "/dev/ttyUSB0";
+const char port_name[] =  "/dev/ttyUSB1";
 
 /*
  * 'open_port()' - Open serial port 1.
@@ -124,7 +124,14 @@ int main(int argc, char *argv[])
 	cw[5] = 0x55aa;
 	
 	write(fcom, cw, sizeof(cw));
-	printf("com = %04x:%04x:%04x:%04x:%04x\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
+	printf("cw = {%04x:%04x:%04x:%04x:%04x}\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
+	
+	printf("cw = {");
+	uint8_t *ptb = (uint8_t*)cw;
+	for(i = 0; i < sizeof(cw)*2; i++){
+		printf("%02x:", *ptb++);
+	}
+	printf("}\n\n");
 
 	//while(nb = read(fcom, &ch, 1))	putc(ch, stderr);
 	
@@ -139,14 +146,21 @@ int main(int argc, char *argv[])
 				uint8_t bl = buf[is]; is = (is+1)&127;
 				tlm[i] = bh+(bl<<8);					
 			}
-
-			printf("tlm = ");
+						
+			printf("tlm = {");
 			if(get_checksum(tlm, 31) == tlm[31]){
-				for(i = 0; i < 31; i++){
+				for(i = 0; i < 32; i++){
 					printf("%04x:", tlm[i]);
 				}				
-				printf("%04x\r\n", tlm[i]);
-				printf("t = %dms:pos = %d:refpos=%d:pcur=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7], (int16_t)tlm[12]);
+				printf("}\n");								
+								
+				printf("buf = {");
+				for(i = 0; i < sizeof(buf); i++){
+					printf("%02x:", buf[i]);
+				}
+				printf("}\n");								
+				
+				printf("t = %dms:pos = %d:refpos=%d:pcur=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[5], (int16_t)tlm[9], (int16_t)tlm[12]);
 			}
 							
 		 }

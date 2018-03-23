@@ -354,8 +354,8 @@ int main()
 			cwready_flg = 0;
 		}
 		
-		//update_telemetry_loop(system_time);
-		update_telemetry(system_time);
+		update_telemetry_loop(system_time);
+		//update_telemetry(system_time);
 		
 		/*if(tlmready_flg){
 			update_telemetry(system_time);	

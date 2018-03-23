@@ -12,7 +12,7 @@
 #define SZCWR 6
 
 extern const int32_t cos_tb[1024];
-const char port_name[] =  "/dev/ttyUSB0";
+const char port_name[] =  "/dev/ttyUSB1";
 
 uint16_t tttt[] = {0x1234,0x0000,0x02af,0x03e8,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 				   0x001b,0x001b,0x000a,0x0000,0x0000,0x0001,0x0000,0x0000,0x0000,0x0000,
@@ -91,11 +91,12 @@ int main(int argc, char *argv[])
 	uint8_t buf[128];
 	int fcom;
 	int nb;
-	int i;
+	int i,j;
 	uint8_t ch='h';
 	int ln = 0;
 	uint32_t phase = 0;
 	uint32_t freq = 50;
+	uint32_t tanl = 0;
 
 	uint16_t cw[6];
 	uint16_t tlm[32];
@@ -121,8 +122,8 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{
-		usleep(100000);
-		for(i = 0; i < 21; i++)
+		//usleep(100000);
+		//for(i = 0; i < 21; i++)
 		// writing command word loop
 		//while(1)
 		{
