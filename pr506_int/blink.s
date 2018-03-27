@@ -276,12 +276,12 @@ Disassembly of section .text:
      2b8:	69fb      	ldr	r3, [r7, #28]
      2ba:	80da      	strh	r2, [r3, #6]
      2bc:	4b2d      	ldr	r3, [pc, #180]	; (374 <update_telemetry_loop+0x200>)
-     2be:	2202      	movs	r2, #2
+     2be:	2204      	movs	r2, #4
      2c0:	5e9a      	ldrsh	r2, [r3, r2]
      2c2:	69fb      	ldr	r3, [r7, #28]
      2c4:	811a      	strh	r2, [r3, #8]
      2c6:	4b2b      	ldr	r3, [pc, #172]	; (374 <update_telemetry_loop+0x200>)
-     2c8:	2202      	movs	r2, #2
+     2c8:	2206      	movs	r2, #6
      2ca:	5e9a      	ldrsh	r2, [r3, r2]
      2cc:	69fb      	ldr	r3, [r7, #28]
      2ce:	815a      	strh	r2, [r3, #10]
@@ -294,12 +294,12 @@ Disassembly of section .text:
      2dc:	69fb      	ldr	r3, [r7, #28]
      2de:	81da      	strh	r2, [r3, #14]
      2e0:	4b24      	ldr	r3, [pc, #144]	; (374 <update_telemetry_loop+0x200>)
-     2e2:	2202      	movs	r2, #2
+     2e2:	2204      	movs	r2, #4
      2e4:	5e9a      	ldrsh	r2, [r3, r2]
      2e6:	69fb      	ldr	r3, [r7, #28]
      2e8:	821a      	strh	r2, [r3, #16]
      2ea:	4b22      	ldr	r3, [pc, #136]	; (374 <update_telemetry_loop+0x200>)
-     2ec:	2202      	movs	r2, #2
+     2ec:	2206      	movs	r2, #6
      2ee:	5e9a      	ldrsh	r2, [r3, r2]
      2f0:	69fb      	ldr	r3, [r7, #28]
      2f2:	825a      	strh	r2, [r3, #18]

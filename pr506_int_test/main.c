@@ -6,7 +6,7 @@
 //#define CPU_PLL_MULT 15 // PLL_CLK 120 MHz for 8 MHz ext oscillator
 #define CPU_PLL_MULT 12 // PLL_CLK 96 MHz for 8 MHz ext oscillator
 #define EEPROM_DEL 4
-#define SYS_TICKS 120000 // 1ms for 120 MHz
+#define SYS_TICKS 96000 // 1ms for 120 MHz
 //#define SYS_TICKS 12000000 // 100ms
 
 // defs for mil_std_1533
@@ -180,12 +180,12 @@ void update_telemetry_loop(uint32_t t)
 		ptm->tmh = 0xffff&(t>>16);
 		ptm->tml = 0xffff&t;
 		ptm->pos1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->pos2 = control506.ref2; //DAC->DAC1_DATA-2048;
-		ptm->pos3 = control506.ref3; //DAC->DAC1_DATA-2048;
+		ptm->pos2 = control506.ref1; //DAC->DAC1_DATA-2048;
+		ptm->pos3 = control506.ref1; //DAC->DAC1_DATA-2048;
 		ptm->cw = 0;
 		ptm->ref1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->ref2 = control506.ref2; //DAC->DAC1_DATA-2048;
-		ptm->ref3 = control506.ref3; //DAC->DAC1_DATA-2048;
+		ptm->ref2 = control506.ref1; //DAC->DAC1_DATA-2048;
+		ptm->ref3 = control506.ref1; //DAC->DAC1_DATA-2048;
 		ptm->uaux = u27;
 		ptm->upwr = upwr;
 		ptm->impr1 = btlm[1].pcur;
@@ -321,6 +321,68 @@ void send_command(struct STR_CONTROL *pc)
 	*/
 }
 
+const uint16_t maske[16] = {(1<<0), (1<<6), (1<<4), (1<<2), (1<<12), (1<<10),
+	(1<<8), (1<<14), (1<<1), (1<<3), (1<<9), (1<<7), (1<<5), (1<<15), (1<<13), (1<<11)	};
+
+const uint16_t maskf[7] = { (1<<2), (1<<0), (1<<4), (1<<6), (1<<1), (1<<3), (1<<5) };
+const uint16_t maska[6] = { (1<<7), (1<<9), (1<<8), (1<<10), (1<<3), (1<<11) };
+	
+
+void test_mode1_proc(void)
+{
+	uint16_t m = 1;
+	int i;
+	
+	while(1) {
+		/*m = 1;
+		while(m){
+			sleep(500);
+			PORTE->RXTX = m;
+			m = m << 1;
+		}*/
+	
+		for(i = 0; i < 16; i++){			
+			PORTE->RXTX = maske[i];
+			sleep(500);
+		}
+		PORTE->RXTX = 0;
+		for(i = 0; i < 7; i++){
+			PORTF->RXTX = maskf[i];
+			sleep(500);
+		}	
+		PORTF->RXTX = 0;			
+		for(i = 0; i < 6; i++){
+			PORTA->RXTX = maska[i];
+			sleep(500);
+		}	
+		PORTA->RXTX = 0;
+	}
+}
+
+void test_mode2_proc(void)
+{
+	int i = 0;
+	while(1) {
+		for(i=0; i < 6; i++) {
+			PORTE->RXTX = 0xffff;
+			PORTF->RXTX = 0xffff;
+			PORTA->RXTX = 0xffff;
+		}
+		for(i=0; i < 120; i++) {
+			PORTE->RXTX = 0;
+			PORTF->RXTX = 0;
+			PORTA->RXTX = 0;
+		}
+	}
+}
+
+uint16_t mil_mask = 0;
+
+void test_mode3_proc(void)
+{
+	while(1) PORTE->RXTX = mil_mask;
+}
+
 int main()
 {
 	char ch;
@@ -338,6 +400,28 @@ int main()
 	pdisp_tm[0] = &telemetry506_p1;
 	pdisp_tm[1] = &telemetry506_p2;
 	disp_idx = 0;
+	
+	while(1)
+	{	
+		if(PORTC->RXTX & (1<<6)){
+			PORTA->RXTX |= (1 << 4);
+			sleep(100);
+			while(PORTC->RXTX & (1<<6));
+			test_mode1_proc();
+		}
+		if(PORTC->RXTX & (1<<7)){
+			PORTA->RXTX |= (1 << 5);
+			sleep(100);
+			while(PORTC->RXTX & (1<<7));			 
+			test_mode2_proc();
+		}
+		if(PORTC->RXTX & (1<<8)){
+			PORTA->RXTX |= (1 << 6);
+			sleep(100);
+			while(PORTC->RXTX & (1<<8));
+			test_mode3_proc();
+		}		
+	}
 	
 	while(1)
 	{
@@ -370,6 +454,14 @@ int main()
 //--- Ports configuration ---
 void PortConfig()
 {
+	// port A
+	RST_CLK->PER_CLOCK |= 1<<21;
+	PORTA->ANALOG = 0xffff;
+	PORTA->FUNC = 0;  				// цифровой порт
+	PORTA->PWR = 0xffffffff;		// max speed
+	PORTA->OE = 0xffff;				// pa выход
+	PORTA->RXTX = 0;
+
 	/*RST_CLK->PER_CLOCK|=1<<24;	 				//clock of PORTD ON
 	
 	PORTD->FUNC = 0x00000000;  		// функция - порт
@@ -378,10 +470,10 @@ void PortConfig()
 	PORTD->ANALOG = 0x7F80;			// port is digital mode
 	PORTD->PWR = 0x3FFFC000;		// max power of port
 	*/
-	
+
 	// inputs for adc portd
 	RST_CLK->PER_CLOCK |= 1<<24;	 		  //clock of PORTD ON
-	PORTD->ANALOG &= ~( (1<<11) + (1<<12) + (1<<13) );  // PD11 - ADC4, PD12 - ADC5, PD13 - ADC6	
+	PORTD->ANALOG &= ~( (1<<11) + (1<<12) + (1<<13) );  // PD11 - ADC4, PD12 - ADC5, PD13 - ADC6
 	
 	// Setting for mil-std-1533 1 pins
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС on
@@ -394,6 +486,9 @@ void PortConfig()
 	PORTC->FUNC |= (1 <<(13<<1)) | (1 <<(14<<1)) | (1 <<(15<<1));
 	PORTC->ANALOG |= (1 << 13) | (1 << 14) | (1 << 15);				// digital mode
 	PORTC->PWR |= (3 <<(13<<1)) | (3 <<(14<<1)) | (3 <<(15<<1));	// max speed
+	// buttons
+	PORTC->ANALOG |= (1 << 6) | (1 << 7) | (1 << 8);				// digital mode
+	
 	// PD0 - PRMB-
 	// PD1 - PRDA+
 	// PD2 - PRDA-
@@ -411,7 +506,14 @@ void PortConfig()
 					
 	// выход для dac0
 	RST_CLK->PER_CLOCK |= 1<<25;	 				//clock of PORTE ON					
-	PORTE->ANALOG &= ~(1<<1); 	// pe1 - dac0 out	
+
+	PORTE->ANALOG = 0xffff;
+	PORTE->FUNC = 0;  				// цифровой порт
+	PORTE->PWR = 0xffffffff;		// max speed
+	PORTE->OE = 0xffff;			// pe выход
+	PORTE->RXTX = 0;
+
+/*	PORTE->ANALOG &= ~(1<<1); 	// pe1 - dac0 out	
 
 	PORTE->ANALOG |= 1<<3; 		// pe3 - TMR1_CH1 out
 	PORTE->FUNC &= ~(3 <<(3<<1));  // цифровой порт
@@ -425,6 +527,7 @@ void PortConfig()
 	PORTE->PWR |= (0x03 << (0<<1));	// max speed pe.0
 	PORTE->OE |= (1 << 0);			// pe.0 - выход
 	PORTE->RXTX |= (1 << 0);
+	*/
 	
 	// Настройка выводов UART1 PC.3 PC.4
 	RST_CLK->PER_CLOCK |= 1<<23;	 							// clock of PORTС ON
@@ -435,7 +538,15 @@ void PortConfig()
 	PORTC->RXTX &= ~((1 << 3) | (1 << 4));	     			// очищаем выход	
 	PORTC->PULL |= 1<<(4+16); //pc4 - pull up
 	
+	// portF
+	RST_CLK->PER_CLOCK |= 1<<29;
+	PORTF->ANALOG = 0xffff;
+	PORTF->FUNC = 0;  				// цифровой порт
+	PORTF->PWR = 0xffffffff;		// max speed
+	PORTF->OE = 0xffff;				// pf выход
+	PORTF->RXTX = 0;		
 }
+
 
 void dac_init()
 {
@@ -667,7 +778,9 @@ void MIL_STD_1553B1_Handler(void)
 			//PORTE->RXTX ^= (1 << 0);
 			
 			// получили управляющий массив от КШ
-			if(cwready_flg == 0){
+			mil_mask = *pw;
+			
+			/*if(cwready_flg == 0){
 				if(nw <= 32){
 					for(i = 0; i < nw; i++){
 						pcw[i] = *pw++;
@@ -675,15 +788,16 @@ void MIL_STD_1553B1_Handler(void)
 					cs = get_checksum(pcw, nw-1);
 					cwready_flg = (control506.cs == cs);
 					
-					if(control506.cs != cs)
-						PORTE->RXTX ^= (1 << 0);
+					//if(control506.cs != cs)
+						//PORTE->RXTX ^= (1 << 0);
 				}
+				
 				
 				//uart_send((uint8_t*)array_cw, nw*2);
 				//int val = (array_cw[1]&0x8000?array_cw[1]-65536:array_cw[1]);
 				//xprintf("%x:%x:%x:%x:%x\r\n", array_cw[0], array_cw[1], array_cw[2], array_cw[3], array_cw[4]);
 				//DAC->DAC1_DATA = val+2048;
-			}
+			}*/
 		}
 	}
 	
