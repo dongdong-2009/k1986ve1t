@@ -179,13 +179,13 @@ void update_telemetry_loop(uint32_t t)
 		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
 		ptm->tmh = 0xffff&(t>>16);
 		ptm->tml = 0xffff&t;
-		ptm->pos1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->pos2 = control506.ref2; //DAC->DAC1_DATA-2048;
-		ptm->pos3 = control506.ref3; //DAC->DAC1_DATA-2048;
+		ptm->pos1 = DAC->DAC1_DATA-2048;
+		ptm->pos2 = 0; //control506.ref2; //DAC->DAC1_DATA-2048;
+		ptm->pos3 = 0; //control506.ref3; //DAC->DAC1_DATA-2048;
 		ptm->cw = 0;
-		ptm->ref1 = control506.ref1; //DAC->DAC1_DATA-2048;
-		ptm->ref2 = control506.ref2; //DAC->DAC1_DATA-2048;
-		ptm->ref3 = control506.ref3; //DAC->DAC1_DATA-2048;
+		ptm->ref1 = DAC->DAC1_DATA-2048;
+		ptm->ref2 = 0; //control506.ref2; //DAC->DAC1_DATA-2048;
+		ptm->ref3 = 0; //control506.ref3; //DAC->DAC1_DATA-2048;
 		ptm->uaux = u27;
 		ptm->upwr = upwr;
 		ptm->impr1 = btlm[1].pcur;
@@ -212,6 +212,7 @@ void update_telemetry(uint32_t t)
 	if(i == 0) return;
 	
 	cidx = i&3 | ((i>>1)&2) | ((i>>2)&1);
+	cidx = (4-cidx) & 0x0f;
 	TIMER1->STATUS = 0;			
 	
 			

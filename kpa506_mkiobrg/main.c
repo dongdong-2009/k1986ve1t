@@ -126,6 +126,41 @@ void test_cw(uint16_t *cw)
 	cw[5] = 0x55aa;
 }
 
+#define FinishBlock(X) (*code_ptr = (X), code_ptr = dst++, code = 0x01)
+void stuff(const uint8_t *ptr, uint32_t length, uint8_t *dst)
+{
+  const uint8_t *end = ptr + length;
+  uint8_t *code_ptr = dst++;
+  uint8_t code = 0x01;
+
+  while (ptr < end)
+  {
+    if (*ptr == 0)
+      FinishBlock(code);
+    else
+    {
+      *dst++ = *ptr;
+	  if (++code == 0xFF) FinishBlock(code);      
+    }
+    ptr++;
+  }
+
+  *dst = 0;
+  FinishBlock(code);
+}
+void unstuff(const uint8_t *ptr, uint32_t length, uint8_t *dst)
+{
+  const uint8_t *end = ptr + length;
+  while (ptr < end)
+  {
+    int code = *ptr++;
+    for (int i = 1; ptr < end && i < code; i++) *dst++ = *ptr++; 
+  
+    if (code < 0xFF)
+      *dst++ = 0;
+  }
+}
+
 int main()
 {
 	uint8_t ch;
@@ -135,11 +170,65 @@ int main()
 	uint8_t bc;
 	uint8_t bp;
 	uint16_t cw[6];
+	uint8_t adu[128];
 	uint32_t cwi = 0;
-	
-	
+
 	SystemInit();	
 	xdev_out(uart_putch);
+
+//------------------------------------------------	
+	while(1)
+	{
+		// update cw
+		if(marker_flg == 0){
+		
+			if(uart_read(&bc, 1))
+			{
+				
+				if(bc == 0){
+					int is = (ib-(NUM_DW*2+1) )&127;
+					uint32_t *pw = (uint32_t*)(MIL_STD_15531_BASE+0x80);
+					
+					// decode adu
+					for(i = 0; i < 12; i++){
+						adu[i] = buf[is]; 
+						is = (is+1)&127;
+					}
+					unstuff(adu, 12, adu);
+					
+					// copy to buffer
+					is = 0;
+					for(i = 0; i < NUM_DW; i++){
+						uint8_t bl = adu[is++];
+						uint8_t bh = adu[is++];
+						*pw++ = bl+(bh<<8);						
+						cw[i] = bl+(bh<<8);
+					}
+					
+					marker_flg = 2;
+
+					if(cw[4] != get_checksum(cw, 4))
+						PORTE->RXTX ^= (1 << 6);
+
+				 }
+				buf[ib] = bc;
+				ib = (ib+1)&127;
+			}
+		}
+		
+		// update telemetry
+		if(tlm_flg){
+			// encode adu
+			stuff((uint8_t*)array_tm2, NUM_DW_TM*2, adu);
+			uart_send(adu, NUM_DW_TM*2+2);
+			tlm_flg = 0;
+			if(array_tm2[31] != get_checksum(array_tm2, 31)) crcerrcnt ++;
+		}
+
+	}
+
+//------------------------------------------------	
+	
 	
 	//xprintf("hello\r\n");
 /*

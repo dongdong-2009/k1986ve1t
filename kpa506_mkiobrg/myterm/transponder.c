@@ -12,7 +12,7 @@
 #define SZCWR 6
 
 extern const int32_t cos_tb[1024];
-const char port_name[] =  "/dev/ttyUSB1";
+const char port_name[] =  "/dev/ttyUSB0";
 
 uint16_t tttt[] = {0x1234,0x0000,0x02af,0x03e8,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
 				   0x001b,0x001b,0x000a,0x0000,0x0000,0x0001,0x0000,0x0000,0x0000,0x0000,
@@ -81,7 +81,7 @@ uint16_t swpb(uint16_t val)
 	return (val << 8) + (0x00ff & (val >> 8));
 }
 
-int main(int argc, char *argv[])
+int main_1(int argc, char *argv[])
 {
 	int ib = 0;
 	uint8_t bc;
@@ -260,6 +260,169 @@ int main(int argc, char *argv[])
 		}
 		
 	}*/
+
+	close(fcom);
+}
+
+
+#define FinishBlock(X) (*code_ptr = (X), code_ptr = dst++, code = 0x01)
+void stuff(const uint8_t *ptr, size_t length, uint8_t *dst)
+{
+  const uint8_t *end = ptr + length;
+  uint8_t *code_ptr = dst++;
+  uint8_t code = 0x01;
+
+  while (ptr < end)
+  {
+    if (*ptr == 0)
+      FinishBlock(code);
+    else
+    {
+      *dst++ = *ptr;
+	  if (++code == 0xFF) FinishBlock(code);      
+    }
+    ptr++;
+  }
+
+  *dst = 0;
+  FinishBlock(code);
+}
+void unstuff(const uint8_t *ptr, size_t length, uint8_t *dst)
+{
+  const uint8_t *end = ptr + length;
+  while (ptr < end)
+  {
+    int code = *ptr++;
+    for (int i = 1; ptr < end && i < code; i++) *dst++ = *ptr++; 
+  
+    if (code < 0xFF)
+      *dst++ = 0;
+  }
+}
+int main(int argc, char *argv[])
+{
+	int ib = 0;
+	uint8_t bc;
+	uint8_t bp;	
+	uint32_t bm=0;
+
+	uint8_t buf[128];
+	int fcom;
+	int nb;
+	int i,j;
+	uint8_t ch='h';
+	int ln = 0;
+	uint32_t phase = 0;
+	uint32_t freq = 50;
+	uint32_t tanl = 0;
+
+	uint16_t cw[6];
+	uint16_t tlm[32];
+	uint32_t ntowrite = 0;
+	uint32_t nwritten = 0;
+	uint32_t idw = 0;
+
+	uint32_t errcnt = 0;
+	uint8_t adu[128];	
+
+	if(argc < 2){
+		printf("argument missed\n");
+		return 1;
+	}
+
+	freq = (50*atoi(argv[1]))/10;
+	//printf("f=%d\n", freq);
+
+	//printf("init serial port\r\n");
+	if( (fcom = init_port()) < 0) {
+		perror("open_port: Unable to open /dev/ttyUSB1 - ");
+		return 1;
+	}
+
+	while(1)
+	{
+		//usleep(100000);
+		//for(i = 0; i < 21; i++)
+		// writing command word loop
+		//while(1)
+		{
+			//if(ntowrite == 0)
+			{
+				phase = (phase+freq) & 1023;
+
+				// put the control array
+				uint16_t tw = 0;
+				uint16_t ts = 0;
+				
+				tw = (1<<5)+(0<<3)+(0<<1); 			ts += tw;	cw[0] = tw;
+				tw = cos_tb[phase]<<1;				ts += tw;	cw[1] = tw;
+				tw = cos_tb[(phase+1024/3)&1023];	ts += tw;	cw[2] = tw;
+				tw = cos_tb[(phase+2*1024/3)&1023];	ts += tw;	cw[3] = tw;
+				cw[4] = ts+1;
+
+				stuff((uint8_t*)cw, 10, adu);
+
+				// send adu to device
+				nb = write(fcom, adu, 12);
+			}
+		}
+
+		ib = 0;
+		// get the telemetry array
+		while(nb = read(fcom, &bc, 1))
+		{
+			
+			if(bc == 0){
+				int is = (ib-(32*2+1) )&127;
+									
+				// decode adu
+				for(i = 0; i < 32*2+2; i++){
+					adu[i] = buf[is]; 
+					is = (is+1)&127;
+				}
+				//prn_buf(adu, sizeof(adu));
+				//printf("\n");
+				
+				unstuff(adu, 32*2+2, adu);
+				
+				// copy to buffer
+				is = 0;
+				for(i = 0; i < 32; i++){
+					uint8_t bl = adu[is++];
+					uint8_t bh = adu[is++];
+					tlm[i] = bl+(bh<<8);
+				}
+							
+				if(get_checksum(tlm, 31) == tlm[31]){
+					/*printf("tlm = {");
+					for(i = 0; i < 32; i++){
+						printf("%04x:", tlm[i]);
+					}				
+					printf("}\n");*/
+									
+					/*printf("buf = {");
+					for(i = 0; i < sizeof(buf); i++){
+						printf("%02x:", buf[i]);
+					}
+					printf("}\n");*/
+
+					/*printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
+					(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
+					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);*/
+					
+					//printf("%d %d %d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[5], (int16_t)tlm[9]);
+					//printf("%d %d %d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
+					
+					printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
+					(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
+					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);
+				}
+
+			 }
+			buf[ib] = bc;
+			ib = (ib+1)&127;
+		}
+	}
 
 	close(fcom);
 }
