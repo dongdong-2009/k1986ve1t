@@ -80,7 +80,7 @@ int init_port(void)
 	options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
 	options.c_oflag     &= ~OPOST;
 	options.c_cc[VMIN]  = 0;
-	options.c_cc[VTIME] = 2;
+	options.c_cc[VTIME] = 5;
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
@@ -227,6 +227,7 @@ int main(int argc, char *argv[])
 				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
 				(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
 				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);
+				break;
 			}
 
 		 }

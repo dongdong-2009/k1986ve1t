@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
 				uint16_t ts = 0;
 				
 				tw = (1<<5)+(0<<3)+(0<<1); 			ts += tw;	cw[0] = tw;
-				tw = cos_tb[phase]<<1;				ts += tw;	cw[1] = tw;
+				tw = cos_tb[phase]>>4;					ts += tw;	cw[1] = tw;
 				tw = cos_tb[(phase+1024/3)&1023];	ts += tw;	cw[2] = tw;
 				tw = cos_tb[(phase+2*1024/3)&1023];	ts += tw;	cw[3] = tw;
 				cw[4] = ts+1;
@@ -411,11 +411,11 @@ int main(int argc, char *argv[])
 					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);*/
 					
 					//printf("%d %d %d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[5], (int16_t)tlm[9]);
-					//printf("%d %d %d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
+					printf("%d %d %d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[3], (int16_t)tlm[7]);
 					
-					printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
+					/*printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
 					(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
-					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);
+					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);*/
 				}
 
 			 }
