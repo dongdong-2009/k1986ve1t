@@ -43,7 +43,7 @@ void uart_init(void)
 	
 	// config uart irq
 	//UART2->IMSC |= (UART_IMSC_RXIM | UART_IMSC_TXIM);
-	UART2->IMSC |= (UART_IMSC_RXIM);
+	UART2->IMSC |= (UART_IMSC_RXIM | UART_IMSC_BEIM);
 	NVIC_EnableIRQ(UART2_IRQn);
 }
 
@@ -132,4 +132,12 @@ void UART2_Handler(void)
 		if(bsz > BUF_TH_DOWN)	PORTE->RXTX |= (1 << 7); // disable flow
 
 	}        	
+	
+	if(UART2->MIS & UART_MIS_BEMIS)
+	{
+		UART2->ICR |= UART_ICR_BEIC;
+		rx_idx = 0;
+		rx_rd_idx = 0;
+		PORTE->RXTX &= ~(1 << 7); // enable flow
+	}
 }

@@ -36,10 +36,11 @@ struct STR_TELEMETRY
 };
 
 struct STR_BUPR_TLM{
-	int16_t refpos;
-	int16_t pos;
-	uint16_t pcur;
-	uint16_t crc;
+	int16_t 	refpos;
+	int16_t 	pos;
+	uint16_t 	pcur;
+	uint8_t 	status;
+	uint8_t 	cs;
 };
 
 #define SW_PWROK     	(1<<15)

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while true; do
+
+    sleep 1
+    sudo ./actuator 500 0 0
+    sleep 1
+    sudo ./actuator -500 0 0
+
+done

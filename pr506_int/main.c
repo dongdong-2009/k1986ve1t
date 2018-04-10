@@ -251,7 +251,8 @@ void update_telemetry(uint32_t t)
 		}
 		
 		// update telemetry arrray
-		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
+		//ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
+		ptm->sw = ((btlm[1].status & 0x03)<<4) | ((btlm[2].status & 0x03)<<2) | ((btlm[3].status & 0x03)<<0);
 		ptm->tmh = 0xffff&(t>>16);
 		ptm->tml = 0xffff&t;
 		ptm->pos1 = btlm[1].pos;
@@ -276,18 +277,21 @@ void update_telemetry(uint32_t t)
 
 void send_command(struct STR_CONTROL *pc)
 {
-	uint8_t com[8];
-	uint16_t buf = pc->ref1;
-	uint8_t *pb = com;
+	uint8_t bx = 0;
+	uint16_t cw = pc->cw;
+	uint16_t ref1 = pc->ref1;
+	uint16_t ref2 = pc->ref2;
+	uint16_t ref3 = pc->ref3;
 	
-	UART1->DR = pc->ref1 & 0xff;
-	UART1->DR = (pc->ref1>>8) & 0xff;
-	UART1->DR = pc->ref2 & 0xff;
-	UART1->DR = (pc->ref2>>8) & 0xff;	
-	UART1->DR = pc->ref3 & 0xff;
-	UART1->DR = (pc->ref3>>8) & 0xff;	
-	UART1->DR = 0;
-	UART1->DR = 0;
+	bx ^= UART1->DR = ref1 & 0xff;
+	bx ^= UART1->DR = (ref1>>8) & 0xff;
+	bx ^= UART1->DR = ref2 & 0xff;
+	bx ^= UART1->DR = (ref2>>8) & 0xff;	
+	bx ^= UART1->DR = ref3 & 0xff;
+	bx ^= UART1->DR = (ref3>>8) & 0xff;	
+	bx ^= UART1->DR = ((cw>>1)&0x0001) | ((cw>>2)&0x0002) | 
+					  ((cw>>3)&0x0004) | ((cw>>9)&0x0008) | ((cw>>11)&0x0010);
+	UART1->DR = bx;
 
 	/*com[0] = pc->ref1 & 0xff;
 	com[1] = (pc->ref1>>8) & 0x0f;
@@ -344,19 +348,15 @@ int main()
 	{
 		if(cwready_flg){
 			//uart_send((uint8_t*)array_cw, nw*2);
-			if( (1<<5) & control506.cw ){
-				int val = (control506.ref1 & 0x8000 ? control506.ref1-65536 : control506.ref1);
-				//xprintf("s=%d\r\n", val);
-				DAC->DAC1_DATA = val+2048;
-				send_command(&control506);
-			}
-			else DAC->DAC1_DATA = 2048;
-			
+			int val = (control506.ref1 & 0x8000 ? control506.ref1-65536 : control506.ref1);
+			//xprintf("s=%d\r\n", val);
+			DAC->DAC1_DATA = val+2048;
+			send_command(&control506);		
 			cwready_flg = 0;
 		}
 		
-		update_telemetry_loop(system_time);
-		//update_telemetry(system_time);
+		//update_telemetry_loop(system_time);
+		update_telemetry(system_time);
 		
 		/*if(tlmready_flg){
 			update_telemetry(system_time);	

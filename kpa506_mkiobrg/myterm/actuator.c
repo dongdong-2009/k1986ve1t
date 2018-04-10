@@ -166,13 +166,12 @@ int main(int argc, char *argv[])
 	}	
 	
 	// put the control array
-	uint16_t tw = 0;
 	uint16_t ts = 0;
 	
-	tw = (1<<5)+(0<<3)+(0<<1); 	ts += tw;	cw[0] = tw;
-	tw = refpos1;				ts += tw;	cw[1] = tw;
-	tw = refpos2;				ts += tw;	cw[2] = tw;
-	tw = refpos3;				ts += tw;	cw[3] = tw;
+	ts += cw[0] = (1<<15) | (1<<5) | (0<<3) | (0<<1);
+	ts += cw[1] = refpos1;
+	ts += cw[2] = refpos2;
+	ts += cw[3] = refpos3;
 	cw[4] = ts+1;
 	
 	stuff((uint8_t*)cw, 10, adu);
@@ -196,7 +195,7 @@ int main(int argc, char *argv[])
 			// decode adu
 			for(i = 0; i < 32*2+2; i++){
 				adu[i] = buf[is]; 
-				is = (is+1)&127;
+				is = (is+1)&127;	
 			}
 			prn_buf(adu, sizeof(adu));
 			printf("\n");
@@ -224,9 +223,9 @@ int main(int argc, char *argv[])
 				}
 				printf("}\n");*/
 
-				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\n",
+				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\n",
 				(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
-				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5]);
+				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0]);
 				break;
 			}
 
@@ -234,105 +233,6 @@ int main(int argc, char *argv[])
 		buf[ib] = bc;
 		ib = (ib+1)&127;
 	}
-
-	close(fcom);
-}
-
-int main_1(int argc, char *argv[])
-{
-	int ib = 0;
-	uint8_t bc;
-	uint8_t bp;	
-	
-	uint8_t buf[128];
-	int fcom;
-	int nb;
-	int i;
-	uint8_t ch='h';
-	int ln = 0;
-	uint32_t phase = 0;
-	uint32_t freq = 50;
-	int16_t refpos1 = 0;
-	
-	uint16_t cw[6];
-	uint16_t tlm[32];
-	
-	if(argc < 2){
-		printf("argument missed\n");
-		return 1;
-	}
-	
-	//freq = (50*atoi(argv[1]))/10;
-	//printf("f=%d\n", freq);
-	
-	refpos1 = atoi(argv[1]);
-	printf("position=%d\n", refpos1);
-	
-	printf("init serial port\r\n");
-	if( (fcom = init_port()) < 0) {
-		perror("open_port: Unable to open /dev/ttyUSB0 - ");
-		return 1;
-	}
-	
-	// put the control array
-	uint16_t cx = (1<<5)+(0<<3)+(0<<1);
-	uint16_t val1 = refpos1;
-	uint16_t val2 = 0;
-	uint16_t val3 = 0;
-	uint16_t cs = cx+val1+val2+val3+1;
-		
-	cw[0] = swpb(cx);
-	cw[1] = swpb(val1);
-	cw[2] = swpb(val2);
-	cw[3] = swpb(val3);
-	cw[4] = swpb(cs);
-	cw[5] = 0x55aa;
-	
-	write(fcom, cw, sizeof(cw));
-	printf("cw = {%04x:%04x:%04x:%04x:%04x}\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
-	
-	printf("cw = {");
-	uint8_t *ptb = (uint8_t*)cw;
-	for(i = 0; i < sizeof(cw)*2; i++){
-		printf("%02x:", *ptb++);
-	}
-	printf("}\n\n");
-
-	//while(nb = read(fcom, &ch, 1))	putc(ch, stderr);
-	
-	// get the telemetry array
-	while(nb = read(fcom, &bc, 1))
-	{
-		if((bc==0x55) && (bp==0xaa)){
-			int is = (ib-(32*2+1))&127;
-			
-			for(i = 0; i < 32; i++){
-				uint8_t bh = buf[is]; is = (is+1)&127;
-				uint8_t bl = buf[is]; is = (is+1)&127;
-				tlm[i] = bh+(bl<<8);					
-			}
-						
-			printf("tlm = {");
-			if(get_checksum(tlm, 31) == tlm[31]){
-				for(i = 0; i < 32; i++){
-					printf("%04x:", tlm[i]);
-				}				
-				printf("}\n");								
-								
-				printf("buf = {");
-				for(i = 0; i < sizeof(buf); i++){
-					printf("%02x:", buf[i]);
-				}
-				printf("}\n");								
-				
-				printf("t = %dms:pos = %d:refpos=%d:pcur=%d\n", (tlm[1]<<16)+tlm[2], (int16_t)tlm[5], (int16_t)tlm[9], (int16_t)tlm[12]);
-			}
-							
-		 }
-		bp = bc;
-		buf[ib] = bc;
-		ib = (ib+1)&127;			
-	}		
 
 	close(fcom);
 }
