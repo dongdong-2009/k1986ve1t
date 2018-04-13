@@ -14,11 +14,8 @@
 
 #define NUM_DW (32&0x1f)
 
-extern void adc_dma_init(void);
-extern void adc_dma_start(void);
-extern void adc_dma_wait(void);
-extern int adc_dma_check(void);
-extern uint32_t adc_dma_buffer[8];
+extern void adc_init(void);
+extern uint32_t adc_update(uint32_t);
 
 struct STR_TELEMETRY telemetry506_p1;
 struct STR_TELEMETRY telemetry506_p2;
@@ -30,6 +27,12 @@ int disp_idx = 0;
 uint32_t milerrcnt = 0;
 uint32_t milfrmcnt = 0;
 uint32_t crcerrcnt = 0;
+
+static uint16_t ipwr = 0;
+static uint16_t upwr = 0;
+static uint16_t u27 = 0;
+
+static uint32_t adc_tbl[8];
 
 //uint16_t array_cw[32]; // массив упр слов
 
@@ -66,6 +69,8 @@ uint32_t system_time = 0;
 uint32_t test_pwm = 500;
 uint32_t cwready_flg = 0;
 uint32_t tlmready_flg = 0;
+
+uint8_t status_word = 0;
 
 uint16_t get_checksum(uint16_t *p, uint32_t n)
 {
@@ -164,16 +169,12 @@ void update_telemetry_loop(uint32_t t)
 
 	if(cidx == 3){
 		
-		static uint16_t ipwr = 0;
-		static uint16_t upwr = 0;
-		static uint16_t u27 = 0;
-
-		if(adc_dma_check()){
+		/*if(adc_dma_check()){
 			ipwr = adc_dma_buffer[0];
 			upwr = adc_dma_buffer[1];
 			u27 = adc_dma_buffer[2];
 			adc_dma_start();
-		}
+		}*/
 		
 		// update telemetry arrray
 		ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
@@ -215,6 +216,12 @@ void update_telemetry(uint32_t t)
 	cidx = (4-cidx) & 0x0f;
 	TIMER1->STATUS = 0;			
 	
+/* Слово соcтояния
+ * [0] - ошибка привода
+ * [1] - готовность привода
+ * [2] - индикация режима эмуляции 
+ * [3] - индикация включения привода
+ */
 			
 	if(UART1->MIS & UART_MIS_RXMIS)
 	{       
@@ -239,20 +246,17 @@ void update_telemetry(uint32_t t)
 
 	if(cidx == 3){
 		
-		static uint16_t ipwr = 0;
-		static uint16_t upwr = 0;
-		static uint16_t u27 = 0;
-
-		if(adc_dma_check()){
+		/*if(adc_dma_check()){
 			ipwr = adc_dma_buffer[0];
-			upwr = adc_dma_buffer[1];
+			upwr = ((2+adc_dma_buffer[1])>>2)<<2;
 			u27 = adc_dma_buffer[2];
 			adc_dma_start();
-		}
+		}*/
 		
 		// update telemetry arrray
 		//ptm->sw = SW_PWROK + SW_CONTRRDY + SW_EMULMODE + SW_INTRDY + SW_DRV1RDY;
-		ptm->sw = ((btlm[1].status & 0x03)<<4) | ((btlm[2].status & 0x03)<<2) | ((btlm[3].status & 0x03)<<0);
+		ptm->sw = ((btlm[1].status & (1<<4))<<2) | ((btlm[1].status & (1<<3))<<12) | 
+				  ((btlm[1].status & 0x03)<<4) | ((btlm[2].status & 0x03)<<2) | ((btlm[3].status & 0x03)<<0);
 		ptm->tmh = 0xffff&(t>>16);
 		ptm->tml = 0xffff&t;
 		ptm->pos1 = btlm[1].pos;
@@ -275,6 +279,17 @@ void update_telemetry(uint32_t t)
 	}
 }
 
+/* Управляющее слово
+ * [0] - снять тормоз привода 3
+ * [1] - снять тормоз привода 2
+ * [2] - снять тормоз привода 1
+ * [3] - включить/выключить режим эмуляции работы приводов
+ * [4] - включить/выключить привод
+ * [5] - 
+ * [6] - статус силового . пит. 1 - норм
+ * [7] - статус приборного пит. 1 - норм
+ */
+
 void send_command(struct STR_CONTROL *pc)
 {
 	uint8_t bx = 0;
@@ -282,6 +297,10 @@ void send_command(struct STR_CONTROL *pc)
 	uint16_t ref1 = pc->ref1;
 	uint16_t ref2 = pc->ref2;
 	uint16_t ref3 = pc->ref3;
+
+	uint8_t s = 0;
+	(upwr > 2000) && (upwr < 4000) && (s |= (1<<6));
+	//(u27 > 2000) && (u27 < 4000) && (s |= (1<<7));
 	
 	bx ^= UART1->DR = ref1 & 0xff;
 	bx ^= UART1->DR = (ref1>>8) & 0xff;
@@ -289,41 +308,18 @@ void send_command(struct STR_CONTROL *pc)
 	bx ^= UART1->DR = (ref2>>8) & 0xff;	
 	bx ^= UART1->DR = ref3 & 0xff;
 	bx ^= UART1->DR = (ref3>>8) & 0xff;	
-	bx ^= UART1->DR = ((cw>>1)&0x0001) | ((cw>>2)&0x0002) | 
+	bx ^= UART1->DR = s | ((cw>>1)&0x0001) | ((cw>>2)&0x0002) | 
 					  ((cw>>3)&0x0004) | ((cw>>9)&0x0008) | ((cw>>11)&0x0010);
 	UART1->DR = bx;
+}
 
-	/*com[0] = pc->ref1 & 0xff;
-	com[1] = (pc->ref1>>8) & 0x0f;
-	com[1] |= (pc->ref2<<4) & 0xf0;
-	com[2] = (pc->ref2>>4) & 0xff;
-	com[3] = pc->ref3 & 0xff;
-	com[4] = (pc->ref3>>8) & 0x0f;
-	
-	com[5] = 0x00;
-	com[6] = 0x00;
-	com[7] = 0x00;
-	*/
+void update_status()
+{
+	ipwr = adc_tbl[4];
+	upwr = adc_tbl[5];
+	u27 = adc_tbl[6];
 
-	/*
-	com[0] = 0x21;
-	com[1] = 0x43;
-	com[2] = 0x56;
-	com[3] = 0x87;
-	com[4] = 0xa9;
-	*/
-
-	//uart_send(com, sizeof(com));
-	/*
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;
-	UART1->DR = *pb++;	
-	*/
+	PORTF->RXTX = 0x1f & (upwr >> 7);
 }
 
 int main()
@@ -347,7 +343,6 @@ int main()
 	while(1)
 	{
 		if(cwready_flg){
-			//uart_send((uint8_t*)array_cw, nw*2);
 			int val = (control506.ref1 & 0x8000 ? control506.ref1-65536 : control506.ref1);
 			//xprintf("s=%d\r\n", val);
 			DAC->DAC1_DATA = val+2048;
@@ -357,14 +352,8 @@ int main()
 		
 		//update_telemetry_loop(system_time);
 		update_telemetry(system_time);
-		
-		/*if(tlmready_flg){
-			update_telemetry(system_time);	
-			tlmready_flg = 0;
-		}*/
-		
-			
-		
+		update_status();
+
 	}
 }
 
@@ -435,6 +424,14 @@ void PortConfig()
 	PORTC->PWR |= (0x03 << (3<<1)) | (0x03 << (4<<1));		// max speed PC.3 PC.4
 	PORTC->RXTX &= ~((1 << 3) | (1 << 4));	     			// очищаем выход	
 	PORTC->PULL |= 1<<(4+16); //pc4 - pull up
+	
+	// portF
+	RST_CLK->PER_CLOCK |= 1<<29;
+	PORTF->ANALOG = 0x1f;
+	PORTF->FUNC = 0;  				// цифровой порт
+	PORTF->PWR = 0x3ff;		// max speed
+	PORTF->OE = 0x1f;				// pf выход
+	PORTF->RXTX = 0;			
 	
 }
 
@@ -555,8 +552,13 @@ void SystemInit(void)
 	mil_std_1533_init_rt();
 	dac_init();				
 	
-	adc_dma_init();
-	adc_dma_start();
+	RST_CLK->PER_CLOCK |= 1<<8 | 1<<20 | 1<<31; 
+	SSP1->DMACR=0;
+	SSP2->DMACR=0;
+	SSP3->DMACR=0;
+	RST_CLK->PER_CLOCK &= ~ (1<<8 | 1<<20 | 1<<31); 
+	
+	adc_init();
 }	
 
 void SysTick_Handler(void)
@@ -566,15 +568,19 @@ void SysTick_Handler(void)
 
 void TIMER4_Handler(void)
 {
+	static int ch = 0;
 	TIMER4->STATUS = 0;	
 	system_time ++;
+	uint32_t buf;
 	
 	//update_telemetry(system_time, *(pdisp_tm+disp_idx));
 	//disp_idx = disp_idx^1;
 	
 	tlmready_flg = 1;
 	//PORTE->RXTX ^= (1 << 0);
+	buf = adc_update(ch=(ch+1)&0x07);
 	
+	adc_tbl[0x07 & (buf>>16)] = 0xfff & buf;
 }
 
 extern void mil_cpy(uint16_t *pt);
@@ -676,8 +682,8 @@ void MIL_STD_1553B1_Handler(void)
 					cs = get_checksum(pcw, nw-1);
 					cwready_flg = (control506.cs == cs);
 					
-					if(control506.cs != cs)
-						PORTE->RXTX ^= (1 << 0);
+					//if(control506.cs != cs)
+						//PORTE->RXTX ^= (1 << 0);
 				}
 				
 				//uart_send((uint8_t*)array_cw, nw*2);

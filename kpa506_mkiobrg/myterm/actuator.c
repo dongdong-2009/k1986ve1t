@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
 	uint8_t buf[128];
 	int nb;
 	int i;
+	uint16_t control_word = 0;
 	
 	/*int i;
 	uint8_t adu[12] = {0xff,0x11,0x12,0x21,0x22,0x31,0x32,0x41,0x42,0x51,0x52,0xff};
@@ -167,8 +168,9 @@ int main(int argc, char *argv[])
 	
 	// put the control array
 	uint16_t ts = 0;
+	control_word = (1<<15) | (1<<5);
 	
-	ts += cw[0] = (1<<15) | (1<<5) | (0<<3) | (0<<1);
+	ts += cw[0] = control_word; //(1<<15) | (1<<5) | (0<<3) | (0<<1);
 	ts += cw[1] = refpos1;
 	ts += cw[2] = refpos2;
 	ts += cw[3] = refpos3;
@@ -177,7 +179,12 @@ int main(int argc, char *argv[])
 	stuff((uint8_t*)cw, 10, adu);
 	
 	// send adu to device
+	
+	//tcsendbreak(fcom, 100);	
+	
 	write(fcom, adu, 12);
+	tcflush(fcom, TCOFLUSH);
+	
 	printf("cw = {%04x:%04x:%04x:%04x:%04x}\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
 	prn_buf(adu, sizeof(adu));
 	printf("\n");
@@ -223,9 +230,9 @@ int main(int argc, char *argv[])
 				}
 				printf("}\n");*/
 
-				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\n",
+				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\nU=%d\n",
 				(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
-				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0]);
+				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0], tlm[11]);
 				break;
 			}
 
@@ -234,5 +241,6 @@ int main(int argc, char *argv[])
 		ib = (ib+1)&127;
 	}
 
+	tcflush(fcom, TCIOFLUSH);
 	close(fcom);
 }
