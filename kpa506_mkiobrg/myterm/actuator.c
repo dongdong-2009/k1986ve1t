@@ -80,7 +80,7 @@ int init_port(void)
 	options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
 	options.c_oflag     &= ~OPOST;
 	options.c_cc[VMIN]  = 0;
-	options.c_cc[VTIME] = 5;
+	options.c_cc[VTIME] = 10;
 	options.c_iflag &= ~(IXON | IXOFF | IXANY); /*  disable software flow control */
 	//options.c_cflag &= ~CRTSCTS; /*  disable hardware flow control */
 	options.c_cflag |= CRTSCTS; /*  enable hardware flow control */
@@ -89,6 +89,8 @@ int init_port(void)
 
 	/* set the options */
 	tcsetattr(fd, TCSANOW, &options);
+	
+	tcflush(fd, TCIOFLUSH);
 
 	return (fd);
 }
@@ -153,6 +155,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	
+	
+	printf("\n\n**** hello ****\n");
 	refpos1 = atoi(argv[1]);
 	printf("refpos1=%d\n", refpos1);
 	refpos2 = atoi(argv[2]);
@@ -182,12 +186,18 @@ int main(int argc, char *argv[])
 	
 	//tcsendbreak(fcom, 100);	
 	
-	write(fcom, adu, 12);
-	tcflush(fcom, TCOFLUSH);
+	
+	if(write(fcom, adu, 12) < 12)
+	{
+		perror("write command");
+		return 1;
+	}
+	
+	if(tcflush(fcom, TCOFLUSH) < 0) return 1;
 	
 	printf("cw = {%04x:%04x:%04x:%04x:%04x}\r\n", cw[0], cw[1], cw[2], cw[3], cw[4]);
-	prn_buf(adu, sizeof(adu));
-	printf("\n");
+	//prn_buf(adu, sizeof(adu));
+	//printf("\n");
 	
 	//return 0;
 	
@@ -204,8 +214,8 @@ int main(int argc, char *argv[])
 				adu[i] = buf[is]; 
 				is = (is+1)&127;	
 			}
-			prn_buf(adu, sizeof(adu));
-			printf("\n");
+			//prn_buf(adu, sizeof(adu));
+			//printf("\n");
 			
 			unstuff(adu, 32*2+2, adu);
 			
@@ -240,7 +250,9 @@ int main(int argc, char *argv[])
 		buf[ib] = bc;
 		ib = (ib+1)&127;
 	}
+	
+	if(nb<0) perror("read error");
 
-	tcflush(fcom, TCIOFLUSH);
 	close(fcom);
+	return 0;
 }
