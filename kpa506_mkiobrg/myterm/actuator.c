@@ -172,7 +172,9 @@ int main(int argc, char *argv[])
 	
 	// put the control array
 	uint16_t ts = 0;
-	control_word = (1<<15) | (1<<5);
+	control_word = 0;
+	control_word = (1<<15); // вкл СЧ
+	//control_word = (1<<15) | (1<<5); // разаррет
 	
 	ts += cw[0] = control_word; //(1<<15) | (1<<5) | (0<<3) | (0<<1);
 	ts += cw[1] = refpos1;
@@ -240,9 +242,9 @@ int main(int argc, char *argv[])
 				}
 				printf("}\n");*/
 
-				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\nU=%d\n",
+				printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\nU=%d\nUpr=%d\n",
 				(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
-				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0], tlm[11]);
+				(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0], tlm[11],tlm[10]);
 				break;
 			}
 

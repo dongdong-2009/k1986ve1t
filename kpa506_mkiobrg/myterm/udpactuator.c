@@ -237,7 +237,7 @@ int main(int argc, char **argv)
 		FD_SET(fcom, &rdset);
 		
 		FD_ZERO(&wrset);
-		FD_SET(fcom, &wrset);		
+		//FD_SET(fcom, &wrset);		
 		
 		if((activity = select(fdmax+1, &rdset, NULL, NULL, NULL)) > 0){
 			// smth happening
@@ -257,17 +257,17 @@ int main(int argc, char **argv)
 						if(sp == 0) break;
 					}
 					
-					//put_control(cmd);
+					put_control(cmd);
 					fcmd = 1;
 				}
 			}
 			
-			if(FD_ISSET(fcom, &wrset)){
+			/*if(FD_ISSET(fcom, &wrset)){
 				if(fcmd){
 					put_control(cmd);
 					fcmd = 0;
 				}
-			}
+			}*/
 			
 			if(FD_ISSET(fcom, &rdset)){
 				fprintf(stderr, "serial is acvite\n");
@@ -289,9 +289,9 @@ int main(int argc, char **argv)
 					}
 					printf("}\n");*/
 
-					printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\nU=%d\n",
+					printf("t = %dms\nrefpos1=%d:refpos2=%d:refpos3=%d\npos1=%d:pos2=%d:pos3=%d\nIp1=%d:Ip3=%d:Ip3=%d\nstatus=0x%04x\nU=%d\nUpr=%d\n",
 					(tlm[1]<<16)+tlm[2], (int16_t)tlm[7], (int16_t)tlm[8], (int16_t)tlm[9],
-					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0], tlm[11]);
+					(int16_t)tlm[3], (int16_t)tlm[4], (int16_t)tlm[5], (int16_t)tlm[12], (int16_t)tlm[13], (int16_t)tlm[14], tlm[0], tlm[11],tlm[10]);
 					
 					
 					char *pm = mess;

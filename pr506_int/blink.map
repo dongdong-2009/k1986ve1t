@@ -16,127 +16,127 @@ FLASH            0x00000000         0x00020000         xr
 Linker script and memory map
 
 
-.text           0x00000000     0x20ac
+.text           0x00000000     0x20c4
                 0x00000000                . = ALIGN (0x4)
  *(.interrupt_vector)
  .interrupt_vector
                 0x00000000       0xc0 startup.o
                 0x00000000                table_interrupt_vector
  *(.text)
- .text          0x000000c0     0x107c main.o
+ .text          0x000000c0     0x1094 main.o
                 0x000000f8                get_checksum
                 0x00000148                sleep
                 0x00000174                update_telemetry_loop
                 0x00000354                update_telemetry
                 0x00000584                send_command
                 0x0000074c                update_status
-                0x0000079c                main
-                0x00000868                PortConfig
-                0x00000a50                dac_init
-                0x00000a7c                ClkConfig
-                0x00000af0                TimerConfig
-                0x00000c88                mil_std_1533_init_rt
-                0x00000d40                SystemInit
-                0x00000da8                SysTick_Handler
-                0x00000dc0                TIMER4_Handler
-                0x00000e28                MIL_STD_1553B1_Handler
- .text          0x0000113c       0x68 startup.o
-                0x0000113c                Reset_Handler
-                0x0000113c                handler_reset
-                0x0000119c                UART2_Handler
-                0x0000119c                HardFault_Handler
-                0x0000119c                ARINC429T2_Handler
-                0x0000119c                EXT_INT1_Handler
-                0x0000119c                PendSV_Handler
-                0x0000119c                NMI_Handler
-                0x0000119c                ADC_Handler
-                0x0000119c                TIMER2_Handler
-                0x0000119c                WWDG_Handler
-                0x0000119c                POWER_Handler
-                0x0000119c                BKP_Handler
-                0x0000119c                TIMER1_Handler
-                0x0000119c                CAN2_Handler
-                0x0000119c                TIMER3_Handler
-                0x0000119c                default_handler
-                0x0000119c                EXT_INT2_Handler
-                0x0000119c                USB_Handler
-                0x0000119c                ETHERNET_Handler
-                0x0000119c                ARINC429T4_Handler
-                0x0000119c                EXT_INT4_Handler
-                0x0000119c                MIL_STD_1553B2_Handler
-                0x0000119c                CAN1_Handler
-                0x0000119c                EXT_INT3_Handler
-                0x0000119c                SVC_Handler
-                0x0000119c                BUSY_Handler
-                0x0000119c                ARINC429T3_Handler
-                0x0000119c                SSP2_Handler
-                0x0000119c                SSP3_Handler
-                0x0000119c                ARINC429T1_Handler
-                0x0000119c                ARINC429R_Handler
-                0x0000119c                SSP1_Handler
- .text          0x000011a4      0x2d4 uart.o
-                0x00001214                uart_init
-                0x000012a4                uart_read
-                0x0000131c                uart_send
-                0x000013c4                uart_putch
-                0x000013f0                UART1_Handler
- .text          0x00001478      0x844 xprintf.o
-                0x00001478                xputc
-                0x000014d0                xputs
-                0x000014f8                xfputs
-                0x00001854                xprintf
-                0x0000187c                xsprintf
-                0x000018c0                xfprintf
-                0x00001900                put_dump
-                0x00001a04                xgets
-                0x00001aa4                xfgets
-                0x00001ae0                xatoi
- .text          0x00001cbc      0x144 mil.o
-                0x00001cbc                mil_cpy
- .text          0x00001e00      0x108 adc_dma.o
-                0x00001e00                adc_init
-                0x00001e28                adc_update
-                0x00001e54                adc_dma_init
-                0x00001e64                adc_dma_start
-                0x00001e80                adc_dma_wait
-                0x00001eb0                adc_dma_check
-                0x00001ee4                DMA_Handler
- .text          0x00001f08      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
-                0x00001f08                __udivsi3
-                0x00001f08                __aeabi_uidiv
-                0x00002014                __aeabi_uidivmod
- .text          0x0000201c        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
-                0x0000201c                __aeabi_ldiv0
-                0x0000201c                __aeabi_idiv0
+                0x000007b4                main
+                0x00000880                PortConfig
+                0x00000a68                dac_init
+                0x00000a94                ClkConfig
+                0x00000b08                TimerConfig
+                0x00000ca0                mil_std_1533_init_rt
+                0x00000d58                SystemInit
+                0x00000dc0                SysTick_Handler
+                0x00000dd8                TIMER4_Handler
+                0x00000e40                MIL_STD_1553B1_Handler
+ .text          0x00001154       0x68 startup.o
+                0x00001154                Reset_Handler
+                0x00001154                handler_reset
+                0x000011b4                UART2_Handler
+                0x000011b4                HardFault_Handler
+                0x000011b4                ARINC429T2_Handler
+                0x000011b4                EXT_INT1_Handler
+                0x000011b4                PendSV_Handler
+                0x000011b4                NMI_Handler
+                0x000011b4                ADC_Handler
+                0x000011b4                TIMER2_Handler
+                0x000011b4                WWDG_Handler
+                0x000011b4                POWER_Handler
+                0x000011b4                BKP_Handler
+                0x000011b4                TIMER1_Handler
+                0x000011b4                CAN2_Handler
+                0x000011b4                TIMER3_Handler
+                0x000011b4                default_handler
+                0x000011b4                EXT_INT2_Handler
+                0x000011b4                USB_Handler
+                0x000011b4                ETHERNET_Handler
+                0x000011b4                ARINC429T4_Handler
+                0x000011b4                EXT_INT4_Handler
+                0x000011b4                MIL_STD_1553B2_Handler
+                0x000011b4                CAN1_Handler
+                0x000011b4                EXT_INT3_Handler
+                0x000011b4                SVC_Handler
+                0x000011b4                BUSY_Handler
+                0x000011b4                ARINC429T3_Handler
+                0x000011b4                SSP2_Handler
+                0x000011b4                SSP3_Handler
+                0x000011b4                ARINC429T1_Handler
+                0x000011b4                ARINC429R_Handler
+                0x000011b4                SSP1_Handler
+ .text          0x000011bc      0x2d4 uart.o
+                0x0000122c                uart_init
+                0x000012bc                uart_read
+                0x00001334                uart_send
+                0x000013dc                uart_putch
+                0x00001408                UART1_Handler
+ .text          0x00001490      0x844 xprintf.o
+                0x00001490                xputc
+                0x000014e8                xputs
+                0x00001510                xfputs
+                0x0000186c                xprintf
+                0x00001894                xsprintf
+                0x000018d8                xfprintf
+                0x00001918                put_dump
+                0x00001a1c                xgets
+                0x00001abc                xfgets
+                0x00001af8                xatoi
+ .text          0x00001cd4      0x144 mil.o
+                0x00001cd4                mil_cpy
+ .text          0x00001e18      0x108 adc_dma.o
+                0x00001e18                adc_init
+                0x00001e40                adc_update
+                0x00001e6c                adc_dma_init
+                0x00001e7c                adc_dma_start
+                0x00001e98                adc_dma_wait
+                0x00001ec8                adc_dma_check
+                0x00001efc                DMA_Handler
+ .text          0x00001f20      0x114 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_udivsi3.o)
+                0x00001f20                __udivsi3
+                0x00001f20                __aeabi_uidiv
+                0x0000202c                __aeabi_uidivmod
+ .text          0x00002034        0x4 /home/smolvik/gcc-arm-none-eabi-5_4-2016q3/lib/gcc/arm-none-eabi/5.4.1/armv6-m/libgcc.a(_dvmd_tls.o)
+                0x00002034                __aeabi_ldiv0
+                0x00002034                __aeabi_idiv0
  *(.text*)
  *(.rodata)
- .rodata        0x00002020        0xe main.o
- *fill*         0x0000202e        0x2 
- .rodata        0x00002030       0x7b xprintf.o
+ .rodata        0x00002038        0xe main.o
+ *fill*         0x00002046        0x2 
+ .rodata        0x00002048       0x7b xprintf.o
  *(.rodata*)
-                0x000020ac                . = ALIGN (0x4)
- *fill*         0x000020ab        0x1 
-                0x000020ac                _data_flash = .
+                0x000020c4                . = ALIGN (0x4)
+ *fill*         0x000020c3        0x1 
+                0x000020c4                _data_flash = .
 
-.glue_7         0x000020ac        0x0
- .glue_7        0x000020ac        0x0 linker stubs
+.glue_7         0x000020c4        0x0
+ .glue_7        0x000020c4        0x0 linker stubs
 
-.glue_7t        0x000020ac        0x0
- .glue_7t       0x000020ac        0x0 linker stubs
+.glue_7t        0x000020c4        0x0
+ .glue_7t       0x000020c4        0x0 linker stubs
 
-.vfp11_veneer   0x000020ac        0x0
- .vfp11_veneer  0x000020ac        0x0 linker stubs
+.vfp11_veneer   0x000020c4        0x0
+ .vfp11_veneer  0x000020c4        0x0 linker stubs
 
-.v4_bx          0x000020ac        0x0
- .v4_bx         0x000020ac        0x0 linker stubs
+.v4_bx          0x000020c4        0x0
+ .v4_bx         0x000020c4        0x0 linker stubs
 
-.iplt           0x000020ac        0x0
- .iplt          0x000020ac        0x0 main.o
+.iplt           0x000020c4        0x0
+ .iplt          0x000020c4        0x0 main.o
 
-.rel.dyn        0x000020ac        0x0
- .rel.iplt      0x000020ac        0x0 main.o
+.rel.dyn        0x000020c4        0x0
+ .rel.iplt      0x000020c4        0x0 main.o
 
-.data           0x20000000       0x44 load address 0x000020ac
+.data           0x20000000       0x44 load address 0x000020c4
                 0x20000000                . = ALIGN (0x4)
                 0x20000000                _data_begin = .
  *(.data)
@@ -154,10 +154,10 @@ Linker script and memory map
                 0x20000044                . = ALIGN (0x4)
                 0x20000044                _data_end = .
 
-.igot.plt       0x20000044        0x0 load address 0x000020f0
+.igot.plt       0x20000044        0x0 load address 0x00002108
  .igot.plt      0x20000044        0x0 main.o
 
-.bss            0x20000044      0x544 load address 0x000020f0
+.bss            0x20000044      0x544 load address 0x00002108
                 0x20000044                . = ALIGN (0x4)
                 0x20000044                _bss_begin = .
                 0x20000044                __bss_start__ = _bss_begin
@@ -202,7 +202,7 @@ Linker script and memory map
                 0x20007c00                _stack_begin = (_stack_end - _stack_size)
                 0x20007c00                . = _stack_begin
 
-._stack         0x20000588      0x400 load address 0x00002634
+._stack         0x20000588      0x400 load address 0x0000264c
                 0x20000988                . = (. + _stack_size)
  *fill*         0x20000588      0x400 
 

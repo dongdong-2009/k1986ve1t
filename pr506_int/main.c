@@ -316,8 +316,8 @@ void send_command(struct STR_CONTROL *pc)
 void update_status()
 {
 	ipwr = adc_tbl[4];
-	upwr = adc_tbl[5];
-	u27 = adc_tbl[6];
+	upwr = adc_tbl[5] + (adc_tbl[5]>>2);
+	u27 = adc_tbl[6] + (adc_tbl[6]>>2);
 
 	PORTF->RXTX = 0x1f & (upwr >> 7);
 }
